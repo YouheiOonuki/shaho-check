@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>社会保険 加入チェッカー｜2026年10月の適用拡大・106万円の壁撤廃に対応</title>
+  <meta name="description" content="パート・アルバイトの方が、自分が社会保険（厚生年金・健康保険）の加入対象かを質問に答えるだけで確認できる無料ツール。2026年10月の賃金要件（106万円の壁）撤廃と、2027年以降の企業規模要件の縮小に対応。保険料の目安も表示します。">
+  <meta name="keywords" content="社会保険,加入条件,パート,アルバイト,106万円の壁,撤廃,2026年10月,適用拡大,週20時間,厚生年金,健康保険">
+  <meta name="author" content="yorozu-craft">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://yorozu-craft.com/shaho-check/">
+
+  <meta property="og:title" content="社会保険 加入チェッカー｜2026年10月の適用拡大に対応">
+  <meta property="og:description" content="パート・アルバイトの方が、自分が社会保険の加入対象かを質問に答えるだけで確認できる無料ツール。106万円の壁の撤廃に対応。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://yorozu-craft.com/shaho-check/">
+  <meta property="og:site_name" content="yorozu-craft">
+  <meta property="og:locale" content="ja_JP">
+  <meta property="og:image" content="https://yorozu-craft.com/shaho-check/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#8b4513">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "社会保険 加入チェッカー",
+    "description": "パート・アルバイトの方が、社会保険（厚生年金・健康保険）の加入対象かを確認できる無料ツール。2026年10月の賃金要件撤廃と企業規模要件の段階的な縮小に対応。",
+    "url": "https://yorozu-craft.com/shaho-check/",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "All",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "JPY" },
+    "inLanguage": "ja"
+  }
+  </script>
+
+  <!-- Google AdSense（サイト所有確認 + 広告配信スクリプト） -->
+  <meta name="google-adsense-account" content="ca-pub-5375267956079717">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5375267956079717"
+     crossorigin="anonymous"></script>
+
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <header class="app-header">
+    <h1>社会保険 加入チェッカー</h1>
+    <p class="subtitle">パート・アルバイトの方向け｜質問に答えるだけで、加入の対象かがわかります</p>
+    <span class="badge">2026年10月の「106万円の壁」撤廃に対応</span>
+  </header>
+
+  <main class="app-main">
+
+    <form id="check-form" class="card" novalidate>
+      <h2>あなたの働き方を教えてください</h2>
+
+      <!-- 1. 週の労働時間 -->
+      <div class="q">
+        <label class="q-title" for="weekly-hours">1. 契約上の週の労働時間</label>
+        <p class="hint">雇用契約書や労働条件通知書に書かれている時間です（残業は含めません）。</p>
+        <div class="num-row">
+          <input type="number" id="weekly-hours" name="weeklyHours" min="0" max="80" step="0.5" inputmode="decimal" placeholder="例：25">
+          <span>時間／週</span>
+        </div>
+      </div>
+
+      <!-- 2. 勤務先の規模 -->
+      <fieldset class="q">
+        <legend>2. 勤務先で厚生年金に入っている人の数</legend>
+        <p class="hint">会社全体（本社・支店をすべて合わせた数）です。わからなければ「わからない」を選んでください。</p>
+        <div class="choices">
+          <label><input type="radio" name="employer" value="51+">51人以上</label>
+          <label><input type="radio" name="employer" value="36-50">36〜50人</label>
+          <label><input type="radio" name="employer" value="21-35">21〜35人</label>
+          <label><input type="radio" name="employer" value="11-20">11〜20人</label>
+          <label><input type="radio" name="employer" value="1-10">10人以下</label>
+          <label><input type="radio" name="employer" value="sole">個人経営のお店など</label>
+          <label><input type="radio" name="employer" value="unknown">わからない</label>
+        </div>
+      </fieldset>
+
+      <!-- 3. 雇用期間 -->
+      <fieldset class="q">
+        <legend>3. 2か月を超えて働く見込みがありますか</legend>
+        <p class="hint">契約期間が2か月以内でも、「更新する場合がある」と書かれていれば「はい」です。</p>
+        <div class="choices">
+          <label><input type="radio" name="overTwoMonths" value="yes" checked>はい</label>
+          <label><input type="radio" name="overTwoMonths" value="no">いいえ</label>
+        </div>
+      </fieldset>
+
+      <!-- 4. 学生 -->
+      <fieldset class="q">
+        <legend>4. 学生ですか</legend>
+        <div class="choices">
+          <label><input type="radio" name="student" value="none" checked>学生ではない</label>
+          <label><input type="radio" name="student" value="daytime">昼間の学生</label>
+          <label><input type="radio" name="student" value="other">夜間・通信制・定時制・休学中</label>
+        </div>
+      </fieldset>
+
+      <!-- 5. 4分の3基準 -->
+      <fieldset class="q">
+        <legend>5. 正社員と比べて、どのくらい働いていますか</legend>
+        <p class="hint">正社員の4分の3以上働いている人は、会社の規模に関係なく加入の対象です。</p>
+        <div class="num-row">
+          <span>正社員の週の労働時間</span>
+          <input type="number" id="fulltime-hours" name="fullTimeHours" min="1" max="80" step="0.5" value="40" inputmode="decimal">
+          <span>時間</span>
+        </div>
+        <p class="sub-q">月の勤務日数も、正社員の4分の3以上ですか</p>
+        <div class="choices">
+          <label><input type="radio" name="daysThreeQuarter" value="yes">はい</label>
+          <label><input type="radio" name="daysThreeQuarter" value="no" checked>いいえ</label>
+          <label><input type="radio" name="daysThreeQuarter" value="unknown">わからない</label>
+        </div>
+      </fieldset>
+
+      <!-- 6. 保険料の目安（任意） -->
+      <div class="q">
+        <label class="q-title" for="monthly-wage">6. 月の給与（任意・保険料の目安を出すため）</label>
+        <p class="hint">残業代・通勤手当・賞与を除いた、毎月の基本の給与です。</p>
+        <div class="num-row">
+          <input type="number" id="monthly-wage" name="monthlyWage" min="0" step="1000" inputmode="numeric" placeholder="例：100000">
+          <span>円／月</span>
+        </div>
+        <div class="choices" style="margin-top:0.5rem">
+          <label><input type="checkbox" id="age-40-64" name="age40to64">40〜64歳です</label>
+        </div>
+      </div>
+    </form>
+
+    <!-- 結果（入力に合わせて自動で更新） -->
+    <section id="result" class="card result" aria-live="polite" hidden>
+      <p id="result-title" class="result-title"></p>
+      <h3>判定の理由</h3>
+      <ul id="result-reasons"></ul>
+      <div id="result-notes-wrap">
+        <h3>あわせて確認してください</h3>
+        <ul id="result-notes"></ul>
+      </div>
+      <div id="premium-wrap" hidden>
+        <h3>加入した場合の保険料（本人負担・月額）の目安</h3>
+        <table class="premium">
+          <tbody>
+            <tr><th>厚生年金</th><td id="p-pension"></td></tr>
+            <tr><th>健康保険</th><td id="p-health"></td></tr>
+            <tr id="p-care-row"><th>介護保険（40〜64歳）</th><td id="p-care"></td></tr>
+            <tr class="total"><th>合計</th><td id="p-total"></td></tr>
+          </tbody>
+        </table>
+        <p class="small">料率は加入する健康保険や年度によって変わるため、あくまで目安です（厚生年金 9.15%、健康保険 約5%、介護保険 約0.8% の本人負担分で計算）。新たに加入する人の負担を軽くする支援策が適用される場合もあります。</p>
+      </div>
+      <p class="small" style="margin-top:0.9rem"><a href="./guide.html">2026年10月から何が変わる？加入するとどうなる？（解説）</a></p>
+    </section>
+
+    <p class="disclaimer">
+      このツールの判定は目安です。最終的な加入の判断は勤務先が行います。詳しくは勤務先、または
+      <a href="https://www.nenkin.go.jp/service/kounen/tekiyo/jigyosho/tanjikan.html" target="_blank" rel="noopener noreferrer">日本年金機構「短時間労働者に対する適用拡大」</a>
+      をご確認ください。入力した内容はこのページの中だけで計算し、保存・送信はしません。
+    </p>
+
+  </main>
+
+  <footer class="app-footer">
+    <nav class="footer-nav" aria-label="フッターナビゲーション">
+      <ul>
+        <li><a href="../">yorozu-craft トップ</a></li>
+        <li><a href="./" aria-current="page">チェッカー</a></li>
+        <li><a href="./guide.html">解説・よくある質問</a></li>
+        <li><a href="./about.html">運営者情報</a></li>
+        <li><a href="./privacy-policy.html">プライバシーポリシー</a></li>
+      </ul>
+    </nav>
+    <p>&copy; 2026 yorozu-craft. All rights reserved.</p>
+    <!-- AD_PLACEHOLDER: 広告の位置を指定する場合はここに AdSense の広告ユニットを入れる（今は全ページの <head> のタグによる自動広告） -->
+  </footer>
+
+  <script src="./judge.js"></script>
+  <script src="./app.js"></script>
+  <!-- Cloudflare Web Analytics（Cookie を使わないアクセス解析） --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "b79bf821e1fd4b6683866d493b1de426"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>
