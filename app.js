@@ -15,8 +15,7 @@
     premiumWrap: document.getElementById('premium-wrap'),
     pension: document.getElementById('p-pension'),
     health: document.getElementById('p-health'),
-    careRow: document.getElementById('p-care-row'),
-    care: document.getElementById('p-care'),
+    kosodate: document.getElementById('p-kosodate'),
     total: document.getElementById('p-total'),
   };
 
@@ -69,12 +68,11 @@
     el.notesWrap.hidden = r.notes.length === 0;
 
     // 保険料の目安は「対象」または「確認が必要」のときだけ出す
-    var p = window.ShahoJudge.estimatePremium(form.monthlyWage.value, form.age40to64.checked);
+    var p = window.ShahoJudge.estimatePremium(form.monthlyWage.value);
     if (p && r.status !== 'not') {
       el.pension.textContent = yen(p.pension);
       el.health.textContent = yen(p.health);
-      el.care.textContent = yen(p.care);
-      el.careRow.hidden = !form.age40to64.checked;
+      el.kosodate.textContent = yen(p.kosodate);
       el.total.textContent = '約 ' + yen(p.total);
       el.premiumWrap.hidden = false;
     } else {
@@ -89,4 +87,21 @@
   // Enter キーでフォームが送信（ページ再読み込み）されないようにする
   form.addEventListener('submit', function (e) { e.preventDefault(); });
   update();
+
+  // 判定の根拠：確認日・出典・料率の時点を表示し、確認日から6か月（183日）たったら注意を出す
+  var J = window.ShahoJudge;
+  var c = J.CHECKED.split('-');
+  var checked = document.getElementById('checked-date');
+  checked.dateTime = J.CHECKED;
+  checked.textContent = c[0] + '年' + Number(c[1]) + '月' + Number(c[2]) + '日';
+  document.getElementById('rates-asof').textContent = J.RATES.asOf;
+  var ul = document.getElementById('sources');
+  J.SOURCES.forEach(function (src) {
+    var li = document.createElement('li');
+    var a = document.createElement('a');
+    a.href = src.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+    a.textContent = src.name;
+    li.appendChild(a); ul.appendChild(li);
+  });
+  document.getElementById('stale-warning').hidden = J.daysSinceChecked(todayIso()) < 183;
 })();
