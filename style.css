@@ -23,7 +23,7 @@
 [hidden] { display: none !important; }
 
 body {
-  font-family: 'Segoe UI', 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
+  font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
   background: var(--bg);
   color: var(--text);
   line-height: 1.7;
