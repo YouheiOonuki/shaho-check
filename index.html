@@ -60,7 +60,7 @@
       <!-- 1. 週の労働時間 -->
       <div class="q">
         <label class="q-title" for="weekly-hours">1. 契約上の週の労働時間</label>
-        <p class="hint">雇用契約書や労働条件通知書に書かれている時間です（残業は含めません）。</p>
+        <p class="hint">雇用契約書や労働条件通知書に書かれている時間です（残業は含めません）。月の時間で決まっている場合は「月の時間 × 12 ÷ 52」で週に直します。</p>
         <div class="num-row">
           <input type="number" id="weekly-hours" name="weeklyHours" min="0" max="80" step="0.5" inputmode="decimal" placeholder="例：25">
           <span>時間／週</span>
@@ -77,6 +77,7 @@
           <label><input type="radio" name="employer" value="21-35">21〜35人</label>
           <label><input type="radio" name="employer" value="11-20">11〜20人</label>
           <label><input type="radio" name="employer" value="1-10">10人以下</label>
+          <label><input type="radio" name="employer" value="public">国・地方公共団体</label>
           <label><input type="radio" name="employer" value="sole">個人経営のお店など</label>
           <label><input type="radio" name="employer" value="unknown">わからない</label>
         </div>
@@ -95,10 +96,11 @@
       <!-- 4. 学生 -->
       <fieldset class="q">
         <legend>4. 学生ですか</legend>
+        <p class="hint">卒業後も同じ職場で働く予定の人、社会人大学院生なども「夜間・通信制・定時制・休学中など」を選んでください。</p>
         <div class="choices">
           <label><input type="radio" name="student" value="none" checked>学生ではない</label>
           <label><input type="radio" name="student" value="daytime">昼間の学生</label>
-          <label><input type="radio" name="student" value="other">夜間・通信制・定時制・休学中</label>
+          <label><input type="radio" name="student" value="other">夜間・通信制・定時制・休学中など</label>
         </div>
       </fieldset>
 
@@ -127,9 +129,6 @@
           <input type="number" id="monthly-wage" name="monthlyWage" min="0" step="1000" inputmode="numeric" placeholder="例：100000">
           <span>円／月</span>
         </div>
-        <div class="choices" style="margin-top:0.5rem">
-          <label><input type="checkbox" id="age-40-64" name="age40to64">40〜64歳です</label>
-        </div>
       </div>
     </form>
 
@@ -148,13 +147,28 @@
           <tbody>
             <tr><th>厚生年金</th><td id="p-pension"></td></tr>
             <tr><th>健康保険</th><td id="p-health"></td></tr>
-            <tr id="p-care-row"><th>介護保険（40〜64歳）</th><td id="p-care"></td></tr>
+            <tr><th>子ども・子育て支援金</th><td id="p-kosodate"></td></tr>
             <tr class="total"><th>合計</th><td id="p-total"></td></tr>
           </tbody>
         </table>
-        <p class="small">料率は加入する健康保険や年度によって変わるため、あくまで目安です（厚生年金 9.15%、健康保険 約5%、介護保険 約0.8% の本人負担分で計算）。新たに加入する人の負担を軽くする支援策が適用される場合もあります。</p>
+        <p class="small">厚生労働省の試算と同じ料率（<span id="rates-asof"></span>時点）の本人負担分で計算した目安です：厚生年金 9.15%、健康保険 4.95%（協会けんぽの全国平均）、子ども・子育て支援金 0.115%。加入する健康保険によって料率は異なります。<strong>40〜64歳の方は、これに介護保険料が加わります。</strong></p>
+        <p class="small">勤務先が「保険料調整制度」を使う場合、新たに加入した人の保険料負担が通算3年間軽くなります（軽くなる割合は月収によって異なり、3年目は半分になります）。使うかどうかは勤務先が決めます。</p>
       </div>
       <p class="small" style="margin-top:0.9rem"><a href="./guide.html">2026年10月から何が変わる？加入するとどうなる？（解説）</a></p>
+    </section>
+
+    <section class="card basis" aria-labelledby="basis-heading">
+      <h2 id="basis-heading">判定の根拠と確認日</h2>
+      <p id="stale-warning" class="stale" hidden>最終確認日から6か月以上たっています。制度が変わっている可能性があるため、下の公式ページで最新の情報をご確認ください。</p>
+      <dl class="info-list">
+        <dt>根拠となる法律</dt>
+        <dd>社会経済の変化を踏まえた年金制度の機能強化のための国民年金法等の一部を改正する等の法律（令和7年年金制度改正法。2025年6月13日成立）</dd>
+        <dt>主な改正</dt>
+        <dd>2026年10月：月額賃金8.8万円以上の条件を撤廃<br>2027年10月〜2035年10月：会社の規模の条件を段階的に縮小・撤廃</dd>
+        <dt>最終確認日</dt>
+        <dd><time id="checked-date"></time>（日本年金機構・厚生労働省の公式ページで確認）</dd>
+      </dl>
+      <ul id="sources" class="sources"></ul>
     </section>
 
     <p class="disclaimer">

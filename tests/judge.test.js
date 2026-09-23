@@ -45,16 +45,28 @@ eq('10月は撤廃の説明', judge(base, T).reasons.some(s => s.includes('な�
 // 入力不足
 eq('時間未入力 → check', judge({ ...base, weeklyHours: '' }, T).status, 'check');
 
-// 保険料の目安
-eq('賃金なし → null', estimatePremium('', false), null);
-const p = estimatePremium(100000, false);
-eq('10万円: 厚生年金', p.pension, 9150);
-eq('10万円: 健康保険', p.health, 5000);
-eq('10万円: 介護なし', p.care, 0);
-const low = estimatePremium(50000, true);
+// 国・地方公共団体は人数に関係なく対象（週20時間以上などは必要）
+eq('国・地方公共団体 → 対象', judge({ ...base, employer: 'public' }, T).status, 'covered');
+eq('国・地方公共団体でも週19hは対象外', judge({ ...base, employer: 'public', weeklyHours: 19 }, T).status, 'not');
+eq('国・地方公共団体でも昼間学生は対象外', judge({ ...base, employer: 'public', student: 'daytime' }, T).status, 'not');
+
+// 保険料の目安（厚生労働省の試算と同じ料率）
+eq('賃金なし → null', estimatePremium(''), null);
+const p = estimatePremium(100000);
+eq('10万円: 厚生年金 9.15%', p.pension, 9150);
+eq('10万円: 健康保険 4.95%', p.health, 4950);
+eq('10万円: 子ども・子育て支援金 0.115%', p.kosodate, 115);
+eq('10万円: 合計', p.total, 14215);
+const low = estimatePremium(50000);
 eq('5万円: 厚生年金は下限8.8万で計算', low.pension, Math.round(88000 * 0.0915));
-eq('5万円: 健康保険は下限5.8万で計算', low.health, Math.round(58000 * 0.05));
-eq('5万円・40歳以上: 介護あり', low.care, Math.round(58000 * 0.008));
+eq('5万円: 健康保険は下限5.8万で計算', low.health, Math.round(58000 * 0.0495));
+
+// 最終確認日からの日数（6か月＝183日で古い情報の注意を出す）
+const { daysSinceChecked, CHECKED, SOURCES } = require('../judge.js');
+eq('確認日当日は0日', daysSinceChecked(CHECKED), 0);
+eq('183日後', daysSinceChecked('2027-03-25'), 183);
+eq('出典が5件以上', SOURCES.length >= 5, true);
+eq('出典はすべて公式ドメイン', SOURCES.every(s => /^https:\/\/www\.(nenkin|mhlw)\.go\.jp\//.test(s.url)), true);
 
 console.log(fail ? `\n${fail}/${n} failed` : `\n${n}/${n} passed`);
 process.exit(fail ? 1 : 0);
