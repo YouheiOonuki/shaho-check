@@ -57,7 +57,8 @@ yorozu-craft のツールの1つです（共通ルールは [youheioonuki.github
 | `style.css` | yorozu-craft 共通の和紙風の配色 |
 | `favicon.svg` / `og-image.png` | ファビコン / SNS 共有用画像（1200x630） |
 | `sitemap.xml` | サイトマップ（robots.txt はドメイン直下で管理） |
-| `tests/judge.test.js` | 判定ロジックのテスト（`node tests/judge.test.js`） |
+| `tests/judge.test.js` | 判定ロジックのテスト（`node --test tests/*.test.js`。`.github/workflows/test.yml` で push・PR のたびに自動実行） |
+| `LICENSE` | MIT License（著作権者 Youhei Oonuki） |
 
 ## 広告・アクセス解析
 
@@ -68,5 +69,5 @@ yorozu-craft のツールの1つです（共通ルールは [youheioonuki.github
 
 ```bash
 python3 -m http.server 8000   # http://localhost:8000/ を開く
-node tests/judge.test.js      # 判定ロジックのテスト
+node --test tests/*.test.js   # 判定ロジックのテスト
 ```

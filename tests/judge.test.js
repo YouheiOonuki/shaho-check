@@ -1,7 +1,9 @@
-// 判定ロジックのテスト: node tests/judge.test.js
+// 判定ロジックのテスト: node --test tests/*.test.js
+const test = require('node:test');
+const assert = require('node:assert/strict');
 const { judge, estimatePremium, sizeThresholdAt, sizeCoveredFrom } = require('../judge.js');
-let fail = 0, n = 0;
-function eq(name, got, want) { n++; if (got !== want) { fail++; console.log('FAIL', name, '→', got, '（期待:', want + '）'); } }
+// 1 項目 = 1 テスト。got と want が同じであることを確かめる
+function eq(name, got, want) { test(name, () => assert.equal(got, want)); }
 const base = { weeklyHours: 25, fullTimeHours: 40, daysThreeQuarter: 'no', overTwoMonths: 'yes', student: 'none', employer: '51+' };
 const T = '2026-10-01';
 
@@ -67,6 +69,3 @@ eq('確認日当日は0日', daysSinceChecked(CHECKED), 0);
 eq('183日後', daysSinceChecked('2027-03-25'), 183);
 eq('出典が5件以上', SOURCES.length >= 5, true);
 eq('出典はすべて公式ドメイン', SOURCES.every(s => /^https:\/\/www\.(nenkin|mhlw)\.go\.jp\//.test(s.url)), true);
-
-console.log(fail ? `\n${fail}/${n} failed` : `\n${n}/${n} passed`);
-process.exit(fail ? 1 : 0);
