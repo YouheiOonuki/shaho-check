@@ -8,6 +8,7 @@
   var form = document.getElementById('check-form');
   var el = {
     result: document.getElementById('result'),
+    body: document.getElementById('result-body'),
     title: document.getElementById('result-title'),
     reasons: document.getElementById('result-reasons'),
     notesWrap: document.getElementById('result-notes-wrap'),
@@ -43,12 +44,21 @@
 
   function yen(n) { return n.toLocaleString('ja-JP') + '円'; }
 
+  // 上端の固定バー（screen.js。yorozu-plans の SCREEN.md 1.1・D59）: 判定が出て、結果が画面の外にあるときだけ判定の見出しを出す
+  var bar = window.YorozuScreen.fixedBar({ bar: 'fixbar', watch: 'result-title', jump: 'result', text: 'fixbar-text' });
+
   function update() {
     var hours = form.weeklyHours.value;
     var employer = radio('employer');
-    // 必須の2問（時間と勤務先の規模）に答えるまでは結果を出さない
+    // 6（任意）の details の summary に今の状態
+    var wage = form.monthlyWage.value;
+    window.YorozuScreen.detailsSummary({ 'opt-wage': wage === '' ? '入力なし' : Number(wage).toLocaleString('ja-JP') + '円／月' });
+    // 必須の2問（時間と勤務先の規模）に答えるまでは結果を出さない（見出しは「—」）
     if (hours === '' || !employer) {
-      el.result.hidden = true;
+      el.result.className = 'card result result-card';
+      el.title.textContent = '—';
+      el.body.hidden = true;
+      bar.set('');
       return;
     }
 
@@ -61,7 +71,7 @@
       employer: employer,
     }, todayIso());
 
-    el.result.className = 'card result ' + r.status;
+    el.result.className = 'card result result-card ' + r.status;
     el.title.textContent = r.title;
     fillList(el.reasons, r.reasons);
     fillList(el.notes, r.notes);
@@ -79,11 +89,15 @@
       el.premiumWrap.hidden = true;
     }
 
-    el.result.hidden = false;
+    el.body.hidden = false;
+    bar.set(r.title);
   }
 
   form.addEventListener('input', update);
   form.addEventListener('change', update);
+  // 6 の月の給与は form の外（結果の後ろの details）にあるので、欄にも付ける
+  form.monthlyWage.addEventListener('input', update);
+  form.monthlyWage.addEventListener('change', update);
   // Enter キーでフォームが送信（ページ再読み込み）されないようにする
   form.addEventListener('submit', function (e) { e.preventDefault(); });
   update();
