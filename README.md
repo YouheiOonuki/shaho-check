@@ -52,6 +52,7 @@ yorozu-craft のツールの1つです（共通ルールは [youheioonuki.github
 | `index.html` | チェッカー本体 |
 | `judge.js` | 判定ロジックと保険料の目安の計算（画面から切り離した純粋関数） |
 | `app.js` | 画面の制御（入力のたびに判定して表示） |
+| `screen.js` | 画面の部品（上端の固定バー・折りたたみの状態表示。yorozu-template と同じ） |
 | `guide.html` | 解説・スケジュール・よくある質問（FAQ の構造化データつき） |
 | `about.html` / `privacy-policy.html` | yorozu-craft 共通の運営者情報・プライバシーポリシー（`../about.html` など）へ移動する案内ページ |
 | `style.css` | yorozu-craft 共通の和紙風の配色 |
