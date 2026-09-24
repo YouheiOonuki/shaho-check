@@ -46,6 +46,11 @@
 </head>
 <body>
 
+  <!-- 上端の固定バー（SCREEN.md 1.1・D59）。判定が出て、結果が画面の外にあるときだけ screen.js が出す。読み込み時は hidden -->
+  <div class="fixbar" id="fixbar" role="status" hidden>
+    <a href="#result"><span id="fixbar-text"></span> ▸ 結果へ</a>
+  </div>
+
   <header class="app-header">
     <h1>社会保険 加入チェッカー</h1>
     <p class="subtitle">パート・アルバイトの方向け｜質問に答えるだけで、加入の対象かがわかります</p>
@@ -54,8 +59,10 @@
 
   <main class="app-main">
 
-    <form id="check-form" class="card" novalidate>
-      <h2>あなたの働き方を教えてください</h2>
+    <!-- 画面の骨組み「入力 → 結果」（yorozu-plans の docs/SCREEN.md 1.1）。1〜5 の質問 → 判定の結果 → 6（任意）の details -->
+    <form id="check-form" novalidate>
+      <fieldset class="card req">
+      <legend>あなたの働き方を教えてください</legend>
 
       <!-- 1. 週の労働時間 -->
       <div class="q">
@@ -121,21 +128,13 @@
           <label><input type="radio" name="daysThreeQuarter" value="unknown">わからない</label>
         </div>
       </fieldset>
-
-      <!-- 6. 保険料の目安（任意） -->
-      <div class="q">
-        <label class="q-title" for="monthly-wage">6. 月の給与（任意・保険料の目安を出すため）</label>
-        <p class="hint">残業代・通勤手当・賞与を除いた、毎月の基本の給与です。</p>
-        <div class="num-row">
-          <input type="number" id="monthly-wage" name="monthlyWage" min="0" step="1000" inputmode="numeric" placeholder="例：100000">
-          <span>円／月</span>
-        </div>
-      </div>
+      </fieldset>
     </form>
 
-    <!-- 結果（入力に合わせて自動で更新） -->
-    <section id="result" class="card result" aria-live="polite" hidden>
-      <p id="result-title" class="result-title"></p>
+    <!-- 結果（入力に合わせて自動で更新）。必須の 2 問（1 と 2）に答えるまでは「—」 -->
+    <section id="result" class="card result result-card" tabindex="-1" aria-live="polite">
+      <p id="result-title" class="result-title">—</p>
+      <div id="result-body" hidden>
       <h3>判定の理由</h3>
       <ul id="result-reasons"></ul>
       <div id="result-notes-wrap">
@@ -159,24 +158,36 @@
           <p class="small">勤務先が「保険料調整制度」を使う場合、新たに加入した人の保険料負担が通算3年間軽くなります（軽くなる割合は月収によって異なり、3年目は半分になります）。使うかどうかは勤務先が決めます。</p>
         </details>
       </div>
+      </div>
       <p class="small" style="margin-top:0.9rem"><a href="./guide.html">2026年10月から何が変わる？加入するとどうなる？（解説）</a></p>
     </section>
 
-    <section class="card basis" aria-labelledby="basis-heading">
-      <h2 id="basis-heading">判定の根拠と確認日</h2>
-      <p id="stale-warning" class="stale" hidden>最終確認日から6か月以上たっています。制度が変わっている可能性があるため、下の公式ページで最新の情報をご確認ください。</p>
+    <!-- 6. 保険料の目安（任意）。結果の後ろの details（SCREEN.md 1.1 の 4）。入力欄は form 属性で check-form に入れる -->
+    <details class="card opt" id="opt-wage">
+      <summary>6. 月の給与（任意）: <span class="opt-state"></span></summary>
+      <div class="q">
+        <label class="q-title" for="monthly-wage">6. 月の給与（任意・保険料の目安を出すため）</label>
+        <p class="hint">残業代・通勤手当・賞与を除いた、毎月の基本の給与です。</p>
+        <div class="num-row">
+          <input type="number" id="monthly-wage" name="monthlyWage" form="check-form" min="0" step="1000" inputmode="numeric" placeholder="例：100000">
+          <span>円／月</span>
+        </div>
+      </div>
+    </details>
+
+    <!-- 判定の根拠と確認日は details に（WRITING.md: 条文・出典の列挙は折りたたむ）。確認日から 6 か月たった注意は、閉じていても見えるよう外に出す -->
+    <p id="stale-warning" class="stale" hidden>最終確認日から6か月以上たっています。制度が変わっている可能性があるため、下の公式ページで最新の情報をご確認ください。</p>
+    <details class="card opt basis" id="basis">
+      <summary id="basis-heading">判定の根拠と確認日</summary>
       <p>根拠: 令和7年年金制度改正法（2025年6月13日成立）、日本年金機構・厚生労働省の公式ページ。最終確認日 <time id="checked-date"></time>。</p>
-      <details class="more">
-        <summary>法律の正式名・主な改正・公式ページ</summary>
-        <dl class="info-list">
-          <dt>根拠となる法律</dt>
-          <dd>社会経済の変化を踏まえた年金制度の機能強化のための国民年金法等の一部を改正する等の法律（令和7年年金制度改正法。2025年6月13日成立）</dd>
-          <dt>主な改正</dt>
-          <dd>2026年10月：月額賃金8.8万円以上の条件を撤廃<br>2027年10月〜2035年10月：会社の規模の条件を段階的に縮小・撤廃</dd>
-        </dl>
-        <ul id="sources" class="sources"></ul>
-      </details>
-    </section>
+      <dl class="info-list">
+        <dt>根拠となる法律</dt>
+        <dd>社会経済の変化を踏まえた年金制度の機能強化のための国民年金法等の一部を改正する等の法律（令和7年年金制度改正法。2025年6月13日成立）</dd>
+        <dt>主な改正</dt>
+        <dd>2026年10月：月額賃金8.8万円以上の条件を撤廃<br>2027年10月〜2035年10月：会社の規模の条件を段階的に縮小・撤廃</dd>
+      </dl>
+      <ul id="sources" class="sources"></ul>
+    </details>
 
     <p class="disclaimer">
       このツールの判定は目安です。最終的な加入の判断は勤務先が行います。詳しくは勤務先、または
@@ -201,6 +212,7 @@
   </footer>
 
   <script src="./judge.js"></script>
+  <script src="./screen.js"></script>
   <script src="./app.js"></script>
   <!-- Cloudflare Web Analytics（Cookie を使わないアクセス解析） --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "b79bf821e1fd4b6683866d493b1de426"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
