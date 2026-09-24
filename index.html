@@ -60,7 +60,8 @@
       <!-- 1. 週の労働時間 -->
       <div class="q">
         <label class="q-title" for="weekly-hours">1. 契約上の週の労働時間</label>
-        <p class="hint">雇用契約書や労働条件通知書に書かれている時間です（残業は含めません）。月の時間で決まっている場合は「月の時間 × 12 ÷ 52」で週に直します。</p>
+        <p class="hint">雇用契約書や労働条件通知書に書かれている時間です（残業は含めません）。</p>
+        <details class="more"><summary>月の時間で決まっている場合</summary><p class="hint">「月の時間 × 12 ÷ 52」で週に直します。</p></details>
         <div class="num-row">
           <input type="number" id="weekly-hours" name="weeklyHours" min="0" max="80" step="0.5" inputmode="decimal" placeholder="例：25">
           <span>時間／週</span>
@@ -70,7 +71,7 @@
       <!-- 2. 勤務先の規模 -->
       <fieldset class="q">
         <legend>2. 勤務先で厚生年金に入っている人の数</legend>
-        <p class="hint">会社全体（本社・支店をすべて合わせた数）です。わからなければ「わからない」を選んでください。</p>
+        <p class="hint">会社全体（本社・支店をすべて合わせた数）です。</p>
         <div class="choices">
           <label><input type="radio" name="employer" value="51+">51人以上</label>
           <label><input type="radio" name="employer" value="36-50">36〜50人</label>
@@ -151,8 +152,12 @@
             <tr class="total"><th>合計</th><td id="p-total"></td></tr>
           </tbody>
         </table>
-        <p class="small">厚生労働省の試算と同じ料率（<span id="rates-asof"></span>時点）の本人負担分で計算した目安です：厚生年金 9.15%、健康保険 4.95%（協会けんぽの全国平均）、子ども・子育て支援金 0.115%。加入する健康保険によって料率は異なります。<strong>40〜64歳の方は、これに介護保険料が加わります。</strong></p>
-        <p class="small">勤務先が「保険料調整制度」を使う場合、新たに加入した人の保険料負担が通算3年間軽くなります（軽くなる割合は月収によって異なり、3年目は半分になります）。使うかどうかは勤務先が決めます。</p>
+        <p class="small">厚生労働省の試算と同じ料率（<span id="rates-asof"></span>時点）の本人負担分です。<strong>40〜64歳の方は、これに介護保険料が加わります。</strong></p>
+        <details class="more">
+          <summary>料率と保険料調整制度</summary>
+          <p class="small">厚生年金 9.15%、健康保険 4.95%（協会けんぽの全国平均）、子ども・子育て支援金 0.115%。加入する健康保険によって料率は異なります。</p>
+          <p class="small">勤務先が「保険料調整制度」を使う場合、新たに加入した人の保険料負担が通算3年間軽くなります（軽くなる割合は月収によって異なり、3年目は半分になります）。使うかどうかは勤務先が決めます。</p>
+        </details>
       </div>
       <p class="small" style="margin-top:0.9rem"><a href="./guide.html">2026年10月から何が変わる？加入するとどうなる？（解説）</a></p>
     </section>
@@ -160,15 +165,17 @@
     <section class="card basis" aria-labelledby="basis-heading">
       <h2 id="basis-heading">判定の根拠と確認日</h2>
       <p id="stale-warning" class="stale" hidden>最終確認日から6か月以上たっています。制度が変わっている可能性があるため、下の公式ページで最新の情報をご確認ください。</p>
-      <dl class="info-list">
-        <dt>根拠となる法律</dt>
-        <dd>社会経済の変化を踏まえた年金制度の機能強化のための国民年金法等の一部を改正する等の法律（令和7年年金制度改正法。2025年6月13日成立）</dd>
-        <dt>主な改正</dt>
-        <dd>2026年10月：月額賃金8.8万円以上の条件を撤廃<br>2027年10月〜2035年10月：会社の規模の条件を段階的に縮小・撤廃</dd>
-        <dt>最終確認日</dt>
-        <dd><time id="checked-date"></time>（日本年金機構・厚生労働省の公式ページで確認）</dd>
-      </dl>
-      <ul id="sources" class="sources"></ul>
+      <p>根拠: 令和7年年金制度改正法（2025年6月13日成立）、日本年金機構・厚生労働省の公式ページ。最終確認日 <time id="checked-date"></time>。</p>
+      <details class="more">
+        <summary>法律の正式名・主な改正・公式ページ</summary>
+        <dl class="info-list">
+          <dt>根拠となる法律</dt>
+          <dd>社会経済の変化を踏まえた年金制度の機能強化のための国民年金法等の一部を改正する等の法律（令和7年年金制度改正法。2025年6月13日成立）</dd>
+          <dt>主な改正</dt>
+          <dd>2026年10月：月額賃金8.8万円以上の条件を撤廃<br>2027年10月〜2035年10月：会社の規模の条件を段階的に縮小・撤廃</dd>
+        </dl>
+        <ul id="sources" class="sources"></ul>
+      </details>
     </section>
 
     <p class="disclaimer">
