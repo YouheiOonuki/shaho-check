@@ -153,25 +153,61 @@
     return { status: 'not', title: 'いまは対象外です（' + formatYm(from) + 'から対象）', reasons: reasons, notes: notes, coveredFrom: from };
   }
 
-  // 保険料（本人負担）の目安。厚生労働省「特設サイト」の手取り試算と同じ料率（2026年4月時点）
-  // 料率は毎年春に見直されるので、変わったら更新する（README の保守手順）
+  // 保険料（本人負担・月額）の目安。月の給与を「標準報酬月額」の等級に当てはめ、その等級の額 × 料率 ÷ 2 で出す
+  // （協会けんぽ・日本年金機構の保険料額表と同じ計算。seido-keisan の /shienkin/ とも同じ値・同じ端数処理）
+  // 料率は毎年春に見直されるので、変わったら更新する（README の保守手順）。PREMIUM_CHECKED は下の値を原文で確かめた日
+  var PREMIUM_CHECKED = '2026-09-25';
+  var PREMIUM_SOURCES = [
+    { name: '協会けんぽ「令和8年3月分（4月納付分）からの健康保険・厚生年金保険の保険料額表」（東京支部。等級と報酬月額の区切りは全国共通）', url: 'https://www.kyoukaikenpo.or.jp/assets/R8_13tokyo.pdf' },
+    { name: '協会けんぽ「令和8年度保険料率のお知らせ」（平均保険料率 9.9%）', url: 'https://www.kyoukaikenpo.or.jp/lp/2026hokenryou/' },
+    { name: '日本年金機構「保険料額表（令和2年9月分〜）」令和8年度版（厚生年金 1〜32 等級）', url: 'https://www.nenkin.go.jp/service/kounen/hokenryo/ryogaku/ryogakuhyo/20200825.html' },
+    { name: '日本年金機構「厚生年金保険の保険料」（標準報酬月額の決め方・報酬に含まれるもの）', url: 'https://www.nenkin.go.jp/service/kounen/hokenryo/hoshu/20150515-01.html' },
+  ];
+
   var RATES = {
     asOf: '2026年4月',
-    pension: 0.0915,     // 厚生年金 18.3% の本人負担分
-    health: 0.0495,      // 健康保険（協会けんぽの全国平均 9.9%）の本人負担分
-    kosodate: 0.00115,   // 子ども・子育て支援金（0.23%）の本人負担分
-    pensionFloor: 88000, // 厚生年金の標準報酬月額の下限
-    healthFloor: 58000,  // 健康保険の標準報酬月額の下限
+    pension: 18.3,       // 厚生年金保険料率（%、労使の合計。平成29年9月分から）
+    health: 9.9,         // 健康保険料率（%、協会けんぽの令和8年度の平均保険料率。都道府県ごとに違う。東京は 9.85%）
+    kosodate: 0.23,      // 子ども・子育て支援金率（%、令和8年4月分から）
   };
+
+  // 標準報酬月額の等級表（健康保険 1〜50 等級）: [この報酬月額未満なら, 標準報酬月額]。最後の行は 1,355,000円以上
+  // 協会けんぽの保険料額表（令和8年3月分から）の「報酬月額」欄を写したもの（seido-keisan の lib/ikukyu-values.js と同じ）
+  var GRADES_KENPO = [
+    [63000, 58000], [73000, 68000], [83000, 78000], [93000, 88000], [101000, 98000], [107000, 104000],
+    [114000, 110000], [122000, 118000], [130000, 126000], [138000, 134000], [146000, 142000], [155000, 150000],
+    [165000, 160000], [175000, 170000], [185000, 180000], [195000, 190000], [210000, 200000], [230000, 220000],
+    [250000, 240000], [270000, 260000], [290000, 280000], [310000, 300000], [330000, 320000], [350000, 340000],
+    [370000, 360000], [395000, 380000], [425000, 410000], [455000, 440000], [485000, 470000], [515000, 500000],
+    [545000, 530000], [575000, 560000], [605000, 590000], [635000, 620000], [665000, 650000], [695000, 680000],
+    [730000, 710000], [770000, 750000], [810000, 790000], [855000, 830000], [905000, 880000], [955000, 930000],
+    [1005000, 980000], [1055000, 1030000], [1115000, 1090000], [1175000, 1150000], [1235000, 1210000],
+    [1295000, 1270000], [1355000, 1330000], [Infinity, 1390000],
+  ];
+  // 厚生年金（1〜32 等級）は 88,000円（93,000円未満）〜 650,000円（635,000円以上）。間の区切りは健康保険と同じ
+  // （日本年金機構の令和8年度版の額表）。上限は 2027年9月に 68万円、2028年9月に 71万円、2029年9月に 75万円へ上がる
+  // （令和7年年金制度改正法。厚生労働省）。新しい等級の報酬月額の区切りは未確認なので、ここはまだ 65万円のまま
+  var PENSION_MIN = 88000, PENSION_MAX = 650000;
+
+  function gradeKenpo(wage) {
+    for (var i = 0; i < GRADES_KENPO.length; i++) if (wage < GRADES_KENPO[i][0]) return GRADES_KENPO[i][1];
+    return GRADES_KENPO[GRADES_KENPO.length - 1][1];
+  }
+  function gradePension(wage) { return Math.min(PENSION_MAX, Math.max(PENSION_MIN, gradeKenpo(wage))); }
+
+  // 標準報酬月額（円）× 料率（%）÷ 2 を銭の整数で。等級の額は 1,000円単位なので、料率を 0.001% 単位の整数にすれば割り切れる
+  function halfSen(hyojun, ratePct) { return hyojun * Math.round(ratePct * 1000) / 2 / 1000; }
+  // 給与から引くときの本人負担分: 50銭以下切り捨て、50銭を超えたら切り上げ（保険料額表の注①）
+  function deductYen(sen) { var y = Math.floor(sen / 100), r = sen - y * 100; return r > 50 ? y + 1 : y; }
 
   function estimatePremium(monthlyWage) {
     var w = Number(monthlyWage);
     if (!(w > 0)) return null;
-    var pension = Math.round(Math.max(w, RATES.pensionFloor) * RATES.pension);
-    var healthBase = Math.max(w, RATES.healthFloor);
-    var health = Math.round(healthBase * RATES.health);
-    var kosodate = Math.round(healthBase * RATES.kosodate);
-    return { pension: pension, health: health, kosodate: kosodate, total: pension + health + kosodate };
+    var hk = gradeKenpo(w), hp = gradePension(w);
+    var pension = deductYen(halfSen(hp, RATES.pension));
+    var health = deductYen(halfSen(hk, RATES.health));
+    var kosodate = deductYen(halfSen(hk, RATES.kosodate));
+    return { hyojunKenpo: hk, hyojunPension: hp, pension: pension, health: health, kosodate: kosodate, total: pension + health + kosodate };
   }
 
   // 最終確認日から何日たったか（古い情報の注意を出すため）
@@ -179,7 +215,7 @@
     return Math.floor((Date.parse(today) - Date.parse(CHECKED)) / 86400000);
   }
 
-  var api = { judge: judge, estimatePremium: estimatePremium, sizeThresholdAt: sizeThresholdAt, sizeCoveredFrom: sizeCoveredFrom, daysSinceChecked: daysSinceChecked, RATES: RATES, CHECKED: CHECKED, SOURCES: SOURCES };
+  var api = { judge: judge, estimatePremium: estimatePremium, gradeKenpo: gradeKenpo, gradePension: gradePension, deductYen: deductYen, GRADES_KENPO: GRADES_KENPO, PREMIUM_CHECKED: PREMIUM_CHECKED, PREMIUM_SOURCES: PREMIUM_SOURCES, sizeThresholdAt: sizeThresholdAt, sizeCoveredFrom: sizeCoveredFrom, daysSinceChecked: daysSinceChecked, RATES: RATES, CHECKED: CHECKED, SOURCES: SOURCES };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ShahoJudge = api;
 })(this);

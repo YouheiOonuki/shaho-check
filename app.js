@@ -18,6 +18,7 @@
     health: document.getElementById('p-health'),
     kosodate: document.getElementById('p-kosodate'),
     total: document.getElementById('p-total'),
+    grade: document.getElementById('p-grade'),
   };
 
   // 今日の日付（端末の日付。YYYY-MM-DD）
@@ -84,6 +85,9 @@
       el.health.textContent = yen(p.health);
       el.kosodate.textContent = yen(p.kosodate);
       el.total.textContent = '約 ' + yen(p.total);
+      el.grade.textContent = p.hyojunKenpo === p.hyojunPension
+        ? yen(p.hyojunKenpo)
+        : '健康保険 ' + yen(p.hyojunKenpo) + '・厚生年金 ' + yen(p.hyojunPension);
       el.premiumWrap.hidden = false;
     } else {
       el.premiumWrap.hidden = true;
@@ -116,6 +120,14 @@
     a.href = src.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
     a.textContent = src.name;
     li.appendChild(a); ul.appendChild(li);
+  });
+  var pul = document.getElementById('premium-sources');
+  J.PREMIUM_SOURCES.forEach(function (src) {
+    var li = document.createElement('li');
+    var a = document.createElement('a');
+    a.href = src.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+    a.textContent = src.name;
+    li.appendChild(a); pul.appendChild(li);
   });
   document.getElementById('stale-warning').hidden = J.daysSinceChecked(todayIso()) < 183;
 })();

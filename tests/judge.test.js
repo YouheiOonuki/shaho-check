@@ -1,7 +1,7 @@
 // 判定ロジックのテスト: node --test tests/*.test.js
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { judge, estimatePremium, sizeThresholdAt, sizeCoveredFrom } = require('../judge.js');
+const { judge, estimatePremium, sizeThresholdAt, sizeCoveredFrom, deductYen, gradeKenpo, GRADES_KENPO, PREMIUM_SOURCES } = require('../judge.js');
 // 1 項目 = 1 テスト。got と want が同じであることを確かめる
 function eq(name, got, want) { test(name, () => assert.equal(got, want)); }
 const base = { weeklyHours: 25, fullTimeHours: 40, daysThreeQuarter: 'no', overTwoMonths: 'yes', student: 'none', employer: '51+' };
@@ -52,17 +52,17 @@ eq('国・地方公共団体 → 対象', judge({ ...base, employer: 'public' },
 eq('国・地方公共団体でも週19hは対象外', judge({ ...base, employer: 'public', weeklyHours: 19 }, T).status, 'not');
 eq('国・地方公共団体でも昼間学生は対象外', judge({ ...base, employer: 'public', student: 'daytime' }, T).status, 'not');
 
-// 保険料の目安（厚生労働省の試算と同じ料率）
+// 保険料の目安（標準報酬月額の等級で計算。D115）
 eq('賃金なし → null', estimatePremium(''), null);
 const p = estimatePremium(100000);
-eq('10万円: 厚生年金 9.15%', p.pension, 9150);
-eq('10万円: 健康保険 4.95%', p.health, 4950);
-eq('10万円: 子ども・子育て支援金 0.115%', p.kosodate, 115);
-eq('10万円: 合計', p.total, 14215);
+eq('10万円 → 等級 98,000円', p.hyojunKenpo, 98000);
+eq('10万円: 厚生年金 98,000 × 9.15%', p.pension, 8967);
+eq('10万円: 健康保険 98,000 × 4.95%', p.health, 4851);
+eq('10万円: 支援金 98,000 × 0.115% = 112.7 → 113', p.kosodate, 113);
+eq('10万円: 合計', p.total, 13931);
 const low = estimatePremium(50000);
-eq('5万円: 厚生年金は下限8.8万で計算', low.pension, Math.round(88000 * 0.0915));
-eq('5万円: 健康保険は下限5.8万で計算', low.health, Math.round(58000 * 0.0495));
-
+eq('5万円: 健康保険は 1 等級 58,000円', low.hyojunKenpo, 58000);
+eq('5万円: 厚生年金は 1 等級 88,000円', low.hyojunPension, 88000);
 // 最終確認日からの日数（6か月＝183日で古い情報の注意を出す）
 const { daysSinceChecked, CHECKED, SOURCES } = require('../judge.js');
 eq('確認日当日は0日', daysSinceChecked(CHECKED), 0);
@@ -70,17 +70,68 @@ eq('183日後', daysSinceChecked('2027-03-25'), 183);
 eq('出典が5件以上', SOURCES.length >= 5, true);
 eq('出典はすべて公式ドメイン', SOURCES.every(s => /^https:\/\/www\.(nenkin|mhlw)\.go\.jp\//.test(s.url)), true);
 
-// K77（2026-09-25）: 保険料の目安の表の「子ども・子育て支援金」の行を制度の計算機の支援金のページへのリンクにした。
-// 目安の額は変えていない（リンクを足す前の値を固定しておく）
-test('保険料の目安の額はリンクを足す前と同じ', () => {
+// D115（2026-09-25）: 目安を「月給 × 料率」から「標準報酬月額の等級 × 料率 ÷ 2」に直した（K77 で固定した額を置き換え）。
+// 期待値は次の額表の「折半額」を写したもの（確認日 2026-09-25）:
+//   厚生年金 … 日本年金機構「保険料額表」令和8年度版（18.300%）
+//   支援金   … 協会けんぽ 令和8年3月分からの保険料額表（東京支部）の子ども・子育て支援金（0.23%）の折半額
+//   健康保険 … 全国平均 9.9% の額表は無い（額表は都道府県ごと）ので、等級 × 4.95% を手で計算した値。
+//              計算のしかたは東京支部の額表（9.85%）の折半額と全等級で一致することを別のテストで確かめる
+// 給与から引く額は、折半額の 50銭以下切り捨て・50銭超切り上げ（額表の注①）
+test('保険料の目安は標準報酬月額の等級で計算する', () => {
   const want = {
-    50000: { pension: 8052, health: 2871, kosodate: 67, total: 10990 },
-    88000: { pension: 8052, health: 4356, kosodate: 101, total: 12509 },
-    150000: { pension: 13725, health: 7425, kosodate: 173, total: 21323 },
-    300000: { pension: 27450, health: 14850, kosodate: 345, total: 42645 },
-    310000: { pension: 28365, health: 15345, kosodate: 357, total: 44067 },
+    // 月給: [健保の等級, 厚年の等級, 厚生年金, 健康保険, 支援金（折半額 → 円）, 合計]
+    50000: [58000, 88000, 8052, 2871, 67, 10990],       // 支援金 66.7
+    88000: [88000, 88000, 8052, 4356, 101, 12509],      // 101.2
+    150000: [150000, 150000, 13725, 7425, 172, 21322],  // 172.5 は切り捨て
+    300000: [300000, 300000, 27450, 14850, 345, 42645], // 345.0
+    310000: [320000, 320000, 29280, 15840, 368, 45488], // 368.0（seido-keisan /shienkin/ と同じ）
   };
-  for (const [w, v] of Object.entries(want)) assert.deepEqual(estimatePremium(Number(w)), v, w);
+  for (const [w, v] of Object.entries(want)) {
+    const r = estimatePremium(Number(w));
+    assert.deepEqual([r.hyojunKenpo, r.hyojunPension, r.pension, r.health, r.kosodate, r.total], v, w);
+  }
+});
+test('等級の境目（報酬月額の「以上・未満」）', () => {
+  const want = [
+    // [月給, 健保の等級, 厚年の等級]
+    [1, 58000, 88000], [62999, 58000, 88000], [63000, 68000, 88000],
+    [92999, 88000, 88000], [93000, 98000, 98000],          // 厚生年金 1 等級は 93,000円未満
+    [309999, 300000, 300000], [310000, 320000, 320000],
+    [634999, 620000, 620000], [635000, 650000, 650000],    // 厚生年金 32 等級は 635,000円以上
+    [665000, 680000, 650000], [1354999, 1330000, 650000], [1355000, 1390000, 650000], [5000000, 1390000, 650000],
+  ];
+  for (const [w, k, n] of want) {
+    const r = estimatePremium(w);
+    assert.deepEqual([r.hyojunKenpo, r.hyojunPension], [k, n], String(w));
+  }
+  // 上限の等級の額（額表の折半額）: 厚生年金 59,475.00、支援金 1,598.5 → 1,598
+  const top = estimatePremium(1355000);
+  assert.deepEqual([top.pension, top.kosodate, top.health], [59475, 1598, 68805]);
+});
+test('50銭以下は切り捨て、50銭を超えたら切り上げ', () => {
+  assert.equal(deductYen(17250), 172);
+  assert.equal(deductYen(17251), 173);
+  assert.equal(deductYen(11270), 113);
+  assert.equal(deductYen(6670), 67);
+  assert.equal(deductYen(34500), 345);
+});
+test('等級表は 50 等級で、額表の標準報酬月額と同じ', () => {
+  assert.equal(GRADES_KENPO.length, 50);
+  // 協会けんぽの額表（東京支部）の「標準報酬月額」欄
+  const std = [58, 68, 78, 88, 98, 104, 110, 118, 126, 134, 142, 150, 160, 170, 180, 190, 200, 220, 240, 260, 280, 300, 320, 340, 360,
+    380, 410, 440, 470, 500, 530, 560, 590, 620, 650, 680, 710, 750, 790, 830, 880, 930, 980, 1030, 1090, 1150, 1210, 1270, 1330, 1390];
+  assert.deepEqual(GRADES_KENPO.map(r => r[1] / 1000), std);
+  // 等級の下限（報酬月額 ○円以上）で、その等級になる
+  for (let i = 1; i < GRADES_KENPO.length; i++) assert.equal(gradeKenpo(GRADES_KENPO[i - 1][0]), GRADES_KENPO[i][1]);
+});
+test('計算のしかたは東京支部の額表（健康保険 9.85%）の折半額と一致する', () => {
+  // 額表の折半額（銭）: 等級 → 9.85% の折半額。いくつかの等級を写した
+  const tokyo = { 58000: 285650, 98000: 482650, 150000: 738750, 320000: 1576000, 650000: 3201250, 1390000: 6845750 };
+  for (const [h, sen] of Object.entries(tokyo)) assert.equal(Number(h) * 9850 / 2 / 1000, sen, h);
+});
+test('出典は協会けんぽ・日本年金機構', () => {
+  assert.ok(PREMIUM_SOURCES.length >= 3);
+  assert.ok(PREMIUM_SOURCES.every(s => /^https:\/\/www\.(kyoukaikenpo\.or|nenkin\.go)\.jp\//.test(s.url)));
 });
 test('支援金の行だけがリンクになっている', () => {
   const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'index.html'), 'utf8');

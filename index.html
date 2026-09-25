@@ -142,7 +142,7 @@
         <ul id="result-notes"></ul>
       </div>
       <div id="premium-wrap" hidden>
-        <h3>加入した場合の保険料（本人負担・月額）の目安</h3>
+        <h3>加入した場合の保険料（本人負担・月額）の目安（標準報酬月額の等級で計算）</h3>
         <table class="premium">
           <tbody>
             <tr><th>厚生年金</th><td id="p-pension"></td></tr>
@@ -151,11 +151,12 @@
             <tr class="total"><th>合計</th><td id="p-total"></td></tr>
           </tbody>
         </table>
-        <p class="small">厚生労働省の試算と同じ料率（<span id="rates-asof"></span>時点）の本人負担分です。<strong>40〜64歳の方は、これに介護保険料が加わります。</strong></p>
+        <p class="small">月の給与を<strong>標準報酬月額の等級</strong>（<span id="p-grade"></span>）に当てはめて計算した目安です（料率は<span id="rates-asof"></span>時点）。実際の等級は勤務先が届け出る額で決まります。<strong>40〜64歳の方は、これに介護保険料が加わります。</strong></p>
         <details class="more">
-          <summary>料率と保険料調整制度</summary>
-          <p class="small">厚生年金 9.15%、健康保険 4.95%（協会けんぽの全国平均）、子ども・子育て支援金 0.115%。加入する健康保険によって料率は異なります。</p>
+          <summary>計算のしかたと保険料調整制度</summary>
+          <p class="small">等級の額 × 料率 ÷ 2（本人負担）。料率は厚生年金 18.3%、健康保険 9.9%（協会けんぽの全国平均。都道府県や加入する健康保険で違います）、子ども・子育て支援金 0.23%。等級は協会けんぽ・日本年金機構の保険料額表のとおりで、1円未満は50銭以下を切り捨て、50銭を超えると切り上げています。</p>
           <p class="small">勤務先が「保険料調整制度」を使う場合、新たに加入した人の保険料負担が通算3年間軽くなります（軽くなる割合は月収によって異なり、3年目は半分になります）。使うかどうかは勤務先が決めます。</p>
+          <ul id="premium-sources" class="sources"></ul>
         </details>
       </div>
       </div>
@@ -167,7 +168,7 @@
       <summary>6. 月の給与（任意）: <span class="opt-state"></span></summary>
       <div class="q">
         <label class="q-title" for="monthly-wage">6. 月の給与（任意・保険料の目安を出すため）</label>
-        <p class="hint">残業代・通勤手当・賞与を除いた、毎月の基本の給与です。</p>
+        <p class="hint">通勤手当や毎月の手当を含めた、1か月の給与の総額です（賞与は除きます）。</p>
         <div class="num-row">
           <input type="number" id="monthly-wage" name="monthlyWage" form="check-form" min="0" step="1000" inputmode="numeric" placeholder="例：100000">
           <span>円／月</span>
