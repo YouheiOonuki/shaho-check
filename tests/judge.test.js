@@ -69,3 +69,22 @@ eq('確認日当日は0日', daysSinceChecked(CHECKED), 0);
 eq('183日後', daysSinceChecked('2027-03-25'), 183);
 eq('出典が5件以上', SOURCES.length >= 5, true);
 eq('出典はすべて公式ドメイン', SOURCES.every(s => /^https:\/\/www\.(nenkin|mhlw)\.go\.jp\//.test(s.url)), true);
+
+// K77（2026-09-25）: 保険料の目安の表の「子ども・子育て支援金」の行を制度の計算機の支援金のページへのリンクにした。
+// 目安の額は変えていない（リンクを足す前の値を固定しておく）
+test('保険料の目安の額はリンクを足す前と同じ', () => {
+  const want = {
+    50000: { pension: 8052, health: 2871, kosodate: 67, total: 10990 },
+    88000: { pension: 8052, health: 4356, kosodate: 101, total: 12509 },
+    150000: { pension: 13725, health: 7425, kosodate: 173, total: 21323 },
+    300000: { pension: 27450, health: 14850, kosodate: 345, total: 42645 },
+    310000: { pension: 28365, health: 15345, kosodate: 357, total: 44067 },
+  };
+  for (const [w, v] of Object.entries(want)) assert.deepEqual(estimatePremium(Number(w)), v, w);
+});
+test('支援金の行だけがリンクになっている', () => {
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'index.html'), 'utf8');
+  assert.match(html, /<tr><th><a href="\.\.\/seido-keisan\/shienkin\/">子ども・子育て支援金<\/a><\/th><td id="p-kosodate"><\/td><\/tr>/);
+  assert.match(html, /<tr><th>厚生年金<\/th><td id="p-pension"><\/td><\/tr>/);
+  assert.match(html, /<tr><th>健康保険<\/th><td id="p-health"><\/td><\/tr>/);
+});
