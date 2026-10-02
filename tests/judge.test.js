@@ -139,3 +139,12 @@ test('支援金の行だけがリンクになっている', () => {
   assert.match(html, /<tr><th>厚生年金<\/th><td id="p-pension"><\/td><\/tr>/);
   assert.match(html, /<tr><th>健康保険<\/th><td id="p-health"><\/td><\/tr>/);
 });
+
+// REVIEW C8（2026-10-01）: 使い方ページの「ご利用上の注意」に WRITING 2 章の免責の定型文が 1 回だけ
+test('使い方ページに免責の定型文（WRITING 2 章）が 1 回', () => {
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'guide.html'), 'utf8');
+  const s = 'この計算は目安です。実際の額は勤務先と年金事務所・健康保険の保険者が決めます。';
+  assert.equal(html.split(s).length - 1, 1);
+  assert.ok(html.indexOf(s) > html.indexOf('id="notes"'), '「ご利用上の注意」の中');
+  assert.ok((html.match(/目安です/g) || []).length <= 2, '「目安です」は 2 回まで');
+});
