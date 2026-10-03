@@ -56,7 +56,7 @@ yorozu-craft のツールの1つです（共通ルールは [youheioonuki.github
 | `screen.js` | 画面の部品（上端の固定バー・折りたたみの状態表示。yorozu-template と同じ） |
 | `guide.html` | 解説・スケジュール・よくある質問（FAQ の構造化データつき） |
 | `about.html` / `privacy-policy.html` | yorozu-craft 共通の運営者情報・プライバシーポリシー（`../about.html` など）へ移動する案内ページ |
-| `style.css` | yorozu-craft 共通の和紙風の配色 |
+| `style.css` | yorozu-craft 共通の和紙風の配色。先頭の `yorozu-common:begin`〜`end` はサイト共通の部品とトークン（手で直さない。正本は youheioonuki.github.io の `tools/common/yorozu-common.css`、`tools/sync-common.mjs` で配る） |
 | `favicon.svg` / `og-image.png` | ファビコン / SNS 共有用画像（1200x630） |
 | `sitemap.xml` | サイトマップ（robots.txt はドメイン直下で管理） |
 | `tests/judge.test.js` | 判定ロジックのテスト（`node --test tests/*.test.js`。`.github/workflows/test.yml` で push・PR のたびに自動実行） |
