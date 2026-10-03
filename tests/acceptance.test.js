@@ -8,7 +8,8 @@ const assert = require('node:assert/strict');
 const { estimatePremium, RATES } = require('../judge.js');
 
 test('ACCEPTANCE 2.3 支援金率: 0.23% の本人負担分（1/2）', () => {
-  assert.equal(Math.round(RATES.kosodate * 1e6), 1150);   // 0.115%
+  // RATES.kosodate は % で持つ（0.23）。本人負担はその 1/2 ＝ 0.115%（期待値 1150 は変えていない）
+  assert.equal(Math.round(RATES.kosodate / 2 * 1e4), 1150);   // 0.115%
 });
 [[300000, 345], [500000, 575]].forEach(([wage, yen], i) => {
   test(`ACCEPTANCE 2.3 行 ${6 + i}（標準報酬月額）: ${wage.toLocaleString()} 円 × 0.23% × 1/2 → 子ども・子育て支援金 ${yen} 円`, () => {
