@@ -160,7 +160,6 @@ fieldset.card { min-width: 0; }
 .info-list { display: grid; grid-template-columns: max-content 1fr; gap: var(--sp-2) var(--sp-4); }
 .info-list dt { font-weight: 700; }
 .info-list dd { color: var(--muted); }
-.last-updated { font-size: var(--fs-s); color: var(--muted); margin-bottom: var(--sp-3); }
 
 /* 注意書き */
 .disclaimer { font-size: var(--fs-s); color: var(--muted); }
@@ -203,3 +202,6 @@ details.card.opt[open] > summary { border-bottom: 1px solid var(--border); margi
   main details::details-content { content-visibility: visible; display: block; }
   main details > summary::before { content: none; }
 }
+
+/* 1 行に 1 つのリンク（使い方への行・案内のカード・出典の一覧）も押せる高さに（DESIGN の 44px。K192 段 3 の 4 の検収） */
+:where(html:not([data-skin="base"])) :where(p, li) > a:only-child { display: inline-flex; align-items: center; min-height: var(--tap); }
