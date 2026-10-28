@@ -20,7 +20,8 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="theme-color" content="#8b4513">
+  <meta name="theme-color" content="#eef0f2" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#15191d" media="(prefers-color-scheme: dark)">
 
   <script type="application/ld+json">
   {
@@ -48,7 +49,7 @@
 <body>
 
   <!-- 上端の固定バー（SCREEN.md 1.1・D59）。判定が出て、結果が画面の外にあるときだけ screen.js が出す。読み込み時は hidden -->
-  <div class="fixbar" id="fixbar" role="status" hidden>
+  <div class="fixed-bar" id="fixbar" role="status" hidden>
     <a href="#result"><span id="fixbar-text"></span> ▸ 結果へ</a>
   </div>
 
@@ -161,7 +162,7 @@
         </details>
       </div>
       </div>
-      <p class="small" style="margin-top:0.9rem"><a href="./guide.html">2026年10月から何が変わった？加入するとどうなる？（解説）</a></p>
+      <p class="small guide-link"><a href="./guide.html">2026年10月から何が変わった？加入するとどうなる？（解説）</a></p>
     </section>
 
     <!-- 6. 保険料の目安（任意）。結果の後ろの details（SCREEN.md 1.1 の 4）。入力欄は form 属性で check-form に入れる -->
