@@ -95,6 +95,7 @@
 
     el.body.hidden = false;
     bar.set(r.title);
+    window.yzUsed?.();
   }
 
   form.addEventListener('input', update);
