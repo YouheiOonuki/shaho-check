@@ -44,6 +44,16 @@ eq('日数が4分の3未満なら規模で判定', judge({ ...full, daysThreeQua
 eq('9月は8.8万円の注記あり', judge(base, '2026-09-30').notes.some(s => s.includes('8.8万円')), true);
 eq('10月は撤廃の説明', judge(base, T).reasons.some(s => s.includes('なくなりました')), true);
 
+// 特定減額特例対象者（2026-10 から。厚生年金保険法 附則4条の6・健康保険法 附則8条の3の2）
+const tok = r => r.notes.some(s => s.includes('減額の特例'));
+eq('10月・短時間で対象 → 特例の文あり', tok(judge(base, T)), true);
+eq('国・地方公共団体で対象 → 特例の文あり', tok(judge({ ...base, employer: 'public' }, T)), true);
+eq('月8.8万円以上と分かる → 特例の文なし', tok(judge({ ...base, monthlyWage: 88000 }, T)), false);
+eq('月8.7万円 → 特例の文あり', tok(judge({ ...base, monthlyWage: 87000 }, T)), true);
+eq('9月は特例の文なし', tok(judge(base, '2026-09-30')), false);
+eq('4分の3基準で対象 → 特例の文なし', tok(judge(full, T)), false);
+eq('対象外 → 特例の文なし', tok(judge({ ...base, employer: '36-50' }, T)), false);
+
 // 入力不足
 eq('時間未入力 → check', judge({ ...base, weeklyHours: '' }, T).status, 'check');
 
@@ -66,9 +76,9 @@ eq('5万円: 厚生年金は 1 等級 88,000円', low.hyojunPension, 88000);
 // 最終確認日からの日数（6か月＝183日で古い情報の注意を出す）
 const { daysSinceChecked, CHECKED, SOURCES } = require('../judge.js');
 eq('確認日当日は0日', daysSinceChecked(CHECKED), 0);
-eq('183日後', daysSinceChecked('2027-03-25'), 183);
+eq('183日後', daysSinceChecked('2027-05-14'), 183);
 eq('出典が5件以上', SOURCES.length >= 5, true);
-eq('出典はすべて公式ドメイン', SOURCES.every(s => /^https:\/\/www\.(nenkin|mhlw)\.go\.jp\//.test(s.url)), true);
+eq('出典はすべて公式ドメイン', SOURCES.every(s => /^https:\/\/(www\.(nenkin|mhlw)|laws\.e-gov)\.go\.jp\//.test(s.url)), true);
 
 // D115（2026-09-25）: 目安を「月給 × 料率」から「標準報酬月額の等級 × 料率 ÷ 2」に直した（K77 で固定した額を置き換え）。
 // 期待値は次の額表の「折半額」を写したもの（確認日 2026-09-25）:
