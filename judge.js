@@ -5,6 +5,8 @@
 // 根拠（一次情報。確認日は CHECKED）:
 // - 令和7年年金制度改正法（社会経済の変化を踏まえた年金制度の機能強化のための国民年金法等の一部を改正する等の法律。令和7年6月13日成立）
 // - 短時間労働者の賃金要件（月額8.8万円以上）は 2026年（令和8年）10月に撤廃（日本年金機構「適用拡大のご案内」）
+//   ただし最低賃金の減額の特例を受け、月の賃金が8.8万円未満の人（特定減額特例対象者）は原則対象外で、申し出れば加入できる
+//   （厚生年金保険法 附則第4条の6・健康保険法 附則第8条の3の2。2026年10月1日施行）
 // - 企業規模要件（厚生年金の被保険者数）: 51人以上 → 2027年10月 36人以上 → 2029年10月 21人以上 → 2032年10月 11人以上 → 2035年10月 撤廃
 //   （厚生労働省「社会保険適用拡大 特設サイト」の判定と同じ区分）
 // - 国・地方公共団体に属する事業所は、人数に関係なく対象
@@ -16,17 +18,23 @@
   'use strict';
 
   // 一次情報を確認した日と出典（画面の「判定の根拠」にも表示する）
-  var CHECKED = '2026-09-23';
+  var CHECKED = '2026-11-12';
   var SOURCES = [
     { name: '日本年金機構「短時間労働者に対する健康保険・厚生年金保険の適用拡大のご案内」', url: 'https://www.nenkin.go.jp/oshirase/topics/2021/0219.html' },
     { name: '日本年金機構「短時間労働者に対する健康保険・厚生年金保険の適用の拡大」', url: 'https://www.nenkin.go.jp/service/kounen/tekiyo/jigyosho/tanjikan.html' },
     { name: '日本年金機構 年金Q&A「学生」とはどのような者を指すのですか', url: 'https://www.nenkin.go.jp/section/faq/kounen/tekiyoukakudai/tanjikan/gakusei02.html' },
     { name: '厚生労働省「社会保険適用拡大 特設サイト」', url: 'https://www.mhlw.go.jp/tekiyoukakudai/' },
     { name: '厚生労働省「年金制度改正法（令和7年法律）」', url: 'https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000147284_00017.html' },
+    { name: '日本年金機構「特定減額特例対象者」', url: 'https://www.nenkin.go.jp/service/yougo/tagyo/gengaku.html' },
+    { name: '厚生年金保険法 附則第4条の6（e-Gov 法令検索）', url: 'https://laws.e-gov.go.jp/law/329AC0000000115' },
+    { name: '健康保険法 附則第8条の3の2（e-Gov 法令検索）', url: 'https://laws.e-gov.go.jp/law/211AC0000000070' },
   ];
 
   // 賃金要件の撤廃日
   var WAGE_ABOLISHED = '2026-10-01';
+  // 撤廃後も残る特定減額特例対象者の線（月の賃金）と、結果に添える文
+  var TOKUTEI_WAGE = 88000;
+  var TOKUTEI_NOTE = '最低賃金の減額の特例を受けていて、月の賃金が8.8万円未満の人は、原則として対象外です。本人が申し出れば加入できます。';
 
   // 企業規模要件の段階（その日以降、この人数以上の会社が対象）。null は規模要件なし
   var SIZE_STEPS = [
@@ -75,12 +83,18 @@
    *   overTwoMonths  2か月を超えて働く見込みか 'yes' | 'no'
    *   student        'none' | 'daytime' | 'other'（夜間・通信・定時制・休学中）
    *   employer       '51+' | '36-50' | '21-35' | '11-20' | '1-10' | 'public'（国・地方公共団体） | 'unknown' | 'sole'（個人事業所）
+   *   monthlyWage    月の給与（任意。8.8万円以上と分かれば特定減額特例の文を出さない）
    * @param {string} today 判定日 'YYYY-MM-DD'
    * @returns {{status:'covered'|'not'|'check', title:string, reasons:string[], notes:string[], coveredFrom:string|null}}
    */
   function judge(a, today) {
     var reasons = [];
     var notes = [];
+    // 短時間労働者として「加入の対象です」と返すときに、特定減額特例の文を添える
+    function coveredShortTime() {
+      if (today >= WAGE_ABOLISHED && !(Number(a.monthlyWage) >= TOKUTEI_WAGE)) notes.push(TOKUTEI_NOTE);
+      return { status: 'covered', title: '加入の対象です', reasons: reasons, notes: notes, coveredFrom: null };
+    }
     var hours = Number(a.weeklyHours);
     var fullTime = Number(a.fullTimeHours) || 40;
 
@@ -129,7 +143,7 @@
     // 会社の規模
     if (a.employer === 'public') {
       reasons.push('国・地方公共団体に属する事業所は、人数に関係なく対象です。');
-      return { status: 'covered', title: '加入の対象です', reasons: reasons, notes: notes, coveredFrom: null };
+      return coveredShortTime();
     }
     if (a.employer === 'sole') {
       notes.push('個人経営の事業所は、業種や人数によって扱いが異なります。勤務先に確認してください。');
@@ -145,7 +159,7 @@
     var from = sizeCoveredFrom(a.employer);
     if (from && from <= today) {
       reasons.push('勤務先の規模が、いまの対象（' + sizeThresholdAt(today) + '人以上）に入っています。');
-      return { status: 'covered', title: '加入の対象です', reasons: reasons, notes: notes, coveredFrom: null };
+      return coveredShortTime();
     }
     reasons.push('勤務先の規模が、いまはまだ対象（' + sizeThresholdAt(today) + '人以上）に入っていません。');
     notes.push(formatYm(from) + 'から、この規模の会社も対象になります（同じ働き方を続けている場合）。');

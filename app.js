@@ -70,6 +70,7 @@
       overTwoMonths: radio('overTwoMonths'),
       student: radio('student'),
       employer: employer,
+      monthlyWage: form.monthlyWage.value,
     }, todayIso());
 
     el.result.className = 'card result result-card ' + r.status;
