@@ -156,7 +156,7 @@
   // 保険料（本人負担・月額）の目安。月の給与を「標準報酬月額」の等級に当てはめ、その等級の額 × 料率 ÷ 2 で出す
   // （協会けんぽ・日本年金機構の保険料額表と同じ計算。seido-keisan の /shienkin/ とも同じ値・同じ端数処理）
   // 料率は毎年春に見直されるので、変わったら更新する（README の保守手順）。PREMIUM_CHECKED は下の値を原文で確かめた日
-  var PREMIUM_CHECKED = '2026-09-25';
+  var PREMIUM_CHECKED = '2026-11-12';
   var PREMIUM_SOURCES = [
     { name: '協会けんぽ「令和8年3月分（4月納付分）からの健康保険・厚生年金保険の保険料額表」（東京支部。等級と報酬月額の区切りは全国共通）', url: 'https://www.kyoukaikenpo.or.jp/assets/R8_13tokyo.pdf' },
     { name: '協会けんぽ「令和8年度保険料率のお知らせ」（平均保険料率 9.9%）', url: 'https://www.kyoukaikenpo.or.jp/lp/2026hokenryou/' },
