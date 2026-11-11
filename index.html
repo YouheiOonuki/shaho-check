@@ -64,13 +64,13 @@
     <!-- 画面の骨組み「入力 → 結果」（yorozu-plans の docs/SCREEN.md 1.1）。1〜5 の質問 → 判定の結果 → 6（任意）の details -->
     <form id="check-form" novalidate>
       <fieldset class="card req">
-      <legend>あなたの働き方を教えてください</legend>
+      <legend>働き方</legend>
 
       <!-- 1. 週の労働時間 -->
       <div class="q">
         <label class="q-title" for="weekly-hours">1. 契約上の週の労働時間</label>
-        <p class="hint">雇用契約書や労働条件通知書に書かれている時間です（残業は含めません）。</p>
-        <details class="more"><summary>月の時間で決まっている場合</summary><p class="hint">「月の時間 × 12 ÷ 52」で週に直します。</p></details>
+        <p class="hint">残業は含めません。</p>
+        <details class="more"><summary>どの時間を入れるか（月の時間で決まっている場合も）</summary><p class="hint">雇用契約書か労働条件通知書に書かれている時間です。月の時間で決まっているときは「月の時間 × 12 ÷ 52」で週に直します。</p></details>
         <div class="num-row">
           <input type="number" id="weekly-hours" name="weeklyHours" min="0" max="80" step="0.5" inputmode="decimal" placeholder="例：25">
           <span>時間／週</span>
@@ -79,8 +79,7 @@
 
       <!-- 2. 勤務先の規模 -->
       <fieldset class="q">
-        <legend>2. 勤務先で厚生年金に入っている人の数</legend>
-        <p class="hint">会社全体（本社・支店をすべて合わせた数）です。</p>
+        <legend>2. 勤務先（会社全体）で厚生年金に入っている人の数</legend>
         <div class="choices">
           <label><input type="radio" name="employer" value="51+">51人以上</label>
           <label><input type="radio" name="employer" value="36-50">36〜50人</label>
@@ -96,7 +95,7 @@
       <!-- 3. 雇用期間 -->
       <fieldset class="q">
         <legend>3. 2か月を超えて働く見込みがありますか</legend>
-        <p class="hint">契約期間が2か月以内でも、「更新する場合がある」と書かれていれば「はい」です。</p>
+        <details class="more"><summary>契約期間が2か月以内の場合</summary><p class="hint">「更新する場合がある」と書かれていれば「はい」です。</p></details>
         <div class="choices">
           <label><input type="radio" name="overTwoMonths" value="yes" checked>はい</label>
           <label><input type="radio" name="overTwoMonths" value="no">いいえ</label>
@@ -106,7 +105,7 @@
       <!-- 4. 学生 -->
       <fieldset class="q">
         <legend>4. 学生ですか</legend>
-        <p class="hint">卒業後も同じ職場で働く予定の人、社会人大学院生なども「夜間・通信制・定時制・休学中など」を選びます。</p>
+        <details class="more"><summary>昼間の学生でも「夜間・通信制など」を選ぶ人</summary><p class="hint">卒業後も同じ職場で働く予定の人、社会人大学院生などです。</p></details>
         <div class="choices">
           <label><input type="radio" name="student" value="none" checked>学生ではない</label>
           <label><input type="radio" name="student" value="daytime">昼間の学生</label>
@@ -117,13 +116,12 @@
       <!-- 5. 4分の3基準 -->
       <fieldset class="q">
         <legend>5. 正社員と比べて、どのくらい働いていますか</legend>
-        <p class="hint">正社員の4分の3以上働いている人は、会社の規模に関係なく加入の対象です。</p>
         <div class="num-row">
           <label for="fulltime-hours">正社員の週の労働時間</label>
           <input type="number" id="fulltime-hours" name="fullTimeHours" min="1" max="80" step="0.5" value="40" inputmode="decimal">
           <span>時間</span>
         </div>
-        <p class="sub-q">月の勤務日数も、正社員の4分の3以上ですか</p>
+        <p class="sub-q">月の勤務日数も4分の3以上ですか</p>
         <div class="choices">
           <label><input type="radio" name="daysThreeQuarter" value="yes">はい</label>
           <label><input type="radio" name="daysThreeQuarter" value="no" checked>いいえ</label>
@@ -144,7 +142,7 @@
         <ul id="result-notes"></ul>
       </div>
       <div id="premium-wrap" hidden>
-        <h3>加入した場合の保険料（本人負担・月額）の目安（標準報酬月額の等級で計算）</h3>
+        <h3>保険料の目安（本人負担・月額）</h3>
         <table class="premium">
           <tbody>
             <tr><th>厚生年金</th><td id="p-pension"></td></tr>
@@ -153,10 +151,10 @@
             <tr class="total"><th>合計</th><td id="p-total"></td></tr>
           </tbody>
         </table>
-        <p class="small">月の給与を<strong>標準報酬月額の等級</strong>（<span id="p-grade"></span>）に当てはめて計算した目安です（料率は<span id="rates-asof"></span>時点）。実際の等級は勤務先が届け出る額で決まります。<strong>40〜64歳の方は、これに介護保険料が加わります。</strong></p>
+        <p class="small">標準報酬月額の等級（<span id="p-grade"></span>）と<span id="rates-asof"></span>時点の料率で計算。<strong>40〜64歳は介護保険料が加わります。</strong></p>
         <details class="more">
           <summary>計算のしかたと保険料調整制度</summary>
-          <p class="small">等級の額 × 料率 ÷ 2（本人負担）。料率は厚生年金 18.3%、健康保険 9.9%（協会けんぽの全国平均。都道府県や加入する健康保険で違います）、子ども・子育て支援金 0.23%。等級は協会けんぽ・日本年金機構の保険料額表のとおりで、1円未満は50銭以下を切り捨て、50銭を超えると切り上げています。</p>
+          <p class="small">月の給与を標準報酬月額の等級に当てはめ、等級の額 × 料率 ÷ 2（本人負担）。実際の等級は勤務先が届け出る額で決まります。料率は厚生年金 18.3%、健康保険 9.9%（協会けんぽの全国平均。都道府県や加入する健康保険で違います）、子ども・子育て支援金 0.23%。等級は協会けんぽ・日本年金機構の保険料額表のとおりで、1円未満は50銭以下を切り捨て、50銭を超えると切り上げています。</p>
           <p class="small">勤務先が「保険料調整制度」を使う場合、新たに加入した人の保険料負担が通算3年間軽くなります（軽くなる割合は月収によって異なり、3年目は半分になります）。使うかどうかは勤務先が決めます。</p>
           <ul id="premium-sources" class="sources"></ul>
         </details>
@@ -179,7 +177,7 @@
       </details>
       <!-- /about-tool -->
 
-      <p class="small guide-link"><a href="./guide.html">2026年10月から何が変わった？加入するとどうなる？（解説）</a></p>
+      <p class="small guide-link"><a href="./guide.html">解説・よくある質問</a></p>
     </section>
 
     <!-- 6. 保険料の目安（任意）。結果の後ろの details（SCREEN.md 1.1 の 4）。入力欄は form 属性で check-form に入れる -->
@@ -196,7 +194,7 @@
     </details>
 
     <!-- 判定の根拠と確認日は details に（WRITING.md: 条文・出典の列挙は折りたたむ）。確認日から 6 か月たった注意は、閉じていても見えるよう外に出す -->
-    <p id="stale-warning" class="stale" hidden>最終確認日から6か月以上たっています。制度が変わっている可能性があるため、下の公式ページで最新の情報をご確認ください。</p>
+    <p id="stale-warning" class="stale" hidden>最終確認日から6か月以上たちました。下の公式ページで確かめてください。</p>
     <details class="card opt basis" id="basis">
       <summary id="basis-heading">判定の根拠と確認日</summary>
       <p>根拠: 令和7年年金制度改正法（2025年6月13日成立）、日本年金機構・厚生労働省の公式ページ。最終確認日 <time id="checked-date"></time>。</p>
@@ -210,9 +208,7 @@
     </details>
 
     <p class="disclaimer">
-      このツールの判定は目安です。最終的な加入の判断は勤務先が行います。詳しくは勤務先、または
-      <a href="https://www.nenkin.go.jp/service/kounen/tekiyo/jigyosho/tanjikan.html" target="_blank" rel="noopener noreferrer">日本年金機構「短時間労働者に対する適用拡大」</a>
-      をご確認ください。入力した内容はこのページの中だけで計算し、保存・送信はしません。
+      この判定は目安です。加入するかは勤務先が決めます。入力は保存・送信しません。
     </p>
 
   </main>
