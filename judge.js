@@ -69,6 +69,34 @@
     return null;
   }
 
+  // 結果の下の年表（規模の条件が下がる階段）。横は TIMELINE_FROM から最後の節目まで。段と節目は SIZE_STEPS から取る
+  var TIMELINE_FROM = '2026-10-01';
+  /**
+   * @param {object} a 回答（judge と同じ）
+   * @param {object} r judge(a, today) の結果
+   * @param {string} today 'YYYY-MM-DD'
+   * @returns {{steps:{from:string,min:number|null,passed:boolean}[], mark:string|null}}
+   *   steps の先頭は TIMELINE_FROM の時点の段（節目ではない）。passed は節目を今日が過ぎたか
+   *   mark は印を置く節目（そこから右を塗る）。規模で対象になる人だけ。TIMELINE_FROM より前は TIMELINE_FROM
+   */
+  function sizeTimeline(a, r, today) {
+    var steps = [{ from: TIMELINE_FROM, min: sizeThresholdAt(TIMELINE_FROM), passed: true }];
+    SIZE_STEPS.forEach(function (s) {
+      if (s.from > TIMELINE_FROM) steps.push({ from: s.from, min: s.min, passed: today >= s.from });
+    });
+    var mark = null;
+    // 個人経営・わからない・規模のほかの条件で対象外（coveredFrom なし）・確認が必要は、印を置かない
+    var bySize = r.status === 'covered' || (r.status === 'not' && r.coveredFrom);
+    if (a.employer === 'public' && r.status === 'covered') mark = TIMELINE_FROM;
+    else if (SIZE_MIN[a.employer] && bySize) {
+      mark = sizeCoveredFrom(a.employer);
+      // 4分の3基準で、規模に関係なくいま対象の人は、いちばん左から
+      if (r.status === 'covered' && mark > today) mark = TIMELINE_FROM;
+      if (mark < TIMELINE_FROM) mark = TIMELINE_FROM;
+    }
+    return { steps: steps, mark: mark };
+  }
+
   function formatYm(iso) {
     var p = iso.split('-');
     return p[0] + '年' + Number(p[1]) + '月';
@@ -229,7 +257,7 @@
     return Math.floor((Date.parse(today) - Date.parse(CHECKED)) / 86400000);
   }
 
-  var api = { judge: judge, estimatePremium: estimatePremium, gradeKenpo: gradeKenpo, gradePension: gradePension, deductYen: deductYen, GRADES_KENPO: GRADES_KENPO, PREMIUM_CHECKED: PREMIUM_CHECKED, PREMIUM_SOURCES: PREMIUM_SOURCES, sizeThresholdAt: sizeThresholdAt, sizeCoveredFrom: sizeCoveredFrom, daysSinceChecked: daysSinceChecked, RATES: RATES, CHECKED: CHECKED, SOURCES: SOURCES };
+  var api = { judge: judge, estimatePremium: estimatePremium, gradeKenpo: gradeKenpo, gradePension: gradePension, deductYen: deductYen, GRADES_KENPO: GRADES_KENPO, PREMIUM_CHECKED: PREMIUM_CHECKED, PREMIUM_SOURCES: PREMIUM_SOURCES, sizeThresholdAt: sizeThresholdAt, sizeCoveredFrom: sizeCoveredFrom, sizeTimeline: sizeTimeline, formatYm: formatYm, daysSinceChecked: daysSinceChecked, RATES: RATES, CHECKED: CHECKED, SOURCES: SOURCES };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ShahoJudge = api;
 })(this);
