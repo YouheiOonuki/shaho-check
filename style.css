@@ -141,7 +141,7 @@ fieldset.card { min-width: 0; }
 .result-card { scroll-margin-top: 56px; }
 .premium th a { display: inline-flex; align-items: center; min-height: var(--tap); }   /* 表の見出しの中のリンクも押せる高さに（Q-449） */   /* 固定バー（44px）で見出しが隠れないように */
 .result-card:focus { outline: none; }
-.guide-link { margin-top: var(--sp-3); }
+p.guide-link { margin-top: var(--sp-3); }   /* 後ろの .small（sp-1）に負けて、上の折りたたみとの間が 5px になっていた（Q-531） */
 /* 結果の下の年表（規模の条件の階段）。印は丸の形と塗りの 2 つで、色だけにしない。過ぎた節目は実線、これからは破線 */
 .nenpyo svg { width: 100%; height: auto; display: block; margin: 0 0 var(--sp-2); }
 .nenpyo .nenpyo-line { fill: none; stroke: var(--text); stroke-width: 3; }
