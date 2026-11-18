@@ -218,5 +218,6 @@ details.card.opt[open] > summary { border-bottom: 1px solid var(--border); margi
   main details > summary::before { content: none; }
 }
 
-/* 1 行に 1 つのリンク（使い方への行・案内のカード・出典の一覧）も押せる高さに（DESIGN の 44px。K192 段 3 の 4 の検収） */
-:where(html:not([data-skin="base"])) :where(p, li) > a:only-child { display: inline-flex; align-items: center; min-height: var(--tap); }
+/* 1 行に 1 つのリンク（使い方への行・案内のカード・出典の一覧）も押せる高さに（DESIGN の 44px。K192 段 3 の 4 の検収）。
+   箱は名指しする。裸の p・li は、字の中の唯一のリンクにも当たって inline でなくなる（Q-518） */
+:where(html:not([data-skin="base"])) :where(p.guide-link, p.cta, #basis li, .sources li, .footer-nav li) > a:only-child { display: inline-flex; align-items: center; min-height: var(--tap); }
