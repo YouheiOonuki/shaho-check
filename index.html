@@ -75,6 +75,8 @@
           <input type="number" id="weekly-hours" name="weeklyHours" min="0" max="80" step="0.5" inputmode="decimal" placeholder="例：25">
           <span>時間／週</span>
         </div>
+        <!-- 週の労働時間の線（app.js の renderHoursLine。境目は ShahoJudge.hoursLines。字は数字と単位だけ。画面だけで紙に出さない） -->
+        <div id="hours-line" class="hours-line"></div>
       </div>
 
       <!-- 2. 勤務先の規模 -->

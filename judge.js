@@ -47,6 +47,21 @@
     { from: '2035-10-01', min: null },
   ];
 
+  // 週の労働時間の線（判定と、画面の「1.」の下の図が同じ名前を読む。Q-526）
+  // 短時間労働者の週の所定労働時間の下限と、正社員の 4 分の 3（日本年金機構「短時間労働者に対する健康保険・厚生年金保険の適用の拡大」）
+  var MIN_WEEKLY_HOURS = 20;
+  var THREE_QUARTERS = 0.75;
+  var DEFAULT_FULLTIME = 40;   // 正社員の週の時間の欄が空のとき
+  // 図の印の刻み（← → と、Shift と ← →）。HOURS_STEP は index.html の #weekly-hours の step と同じ（テストで結ぶ）
+  var HOURS_STEP = 0.5;
+  var HOURS_BIG_STEP = 5;
+  function fullTimeOf(v) { return Number(v) || DEFAULT_FULLTIME; }
+  // 図の横の端（正社員の時間）と、境目の 2 本
+  function hoursLines(fullTimeHours) {
+    var max = fullTimeOf(fullTimeHours);
+    return { max: max, min: MIN_WEEKLY_HOURS, threeQuarter: max * THREE_QUARTERS };
+  }
+
   // 会社規模の選択肢 → その区分の最小人数（「わからない」「個人事業所」は別扱い）
   var SIZE_MIN = { '51+': 51, '36-50': 36, '21-35': 21, '11-20': 11, '1-10': 1 };
 
@@ -124,7 +139,7 @@
       return { status: 'covered', title: '加入の対象です', reasons: reasons, notes: notes, coveredFrom: null };
     }
     var hours = Number(a.weeklyHours);
-    var fullTime = Number(a.fullTimeHours) || 40;
+    var fullTime = fullTimeOf(a.fullTimeHours);
 
     if (!(hours > 0)) {
       return { status: 'check', title: '週の労働時間を入力してください', reasons: [], notes: [], coveredFrom: null };
@@ -138,7 +153,7 @@
     }
 
     // 4分の3基準：正社員並みに働く人は、会社の規模や学生かどうかに関係なく加入
-    var hoursThreeQuarter = hours >= fullTime * 0.75;
+    var hoursThreeQuarter = hours >= fullTime * THREE_QUARTERS;
     if (hoursThreeQuarter && a.daysThreeQuarter === 'yes') {
       reasons.push('週の労働時間（' + hours + '時間）が正社員（' + fullTime + '時間）の4分の3以上で、勤務日数も4分の3以上です。');
       reasons.push('この場合は会社の規模に関係なく、通常の被保険者として加入します（学生でも同じです）。');
@@ -149,12 +164,12 @@
     }
 
     // ここからは短時間労働者の要件
-    if (hours < 20) {
-      reasons.push('週の所定労働時間が20時間未満のため、対象外です。');
+    if (hours < MIN_WEEKLY_HOURS) {
+      reasons.push('週の所定労働時間が' + MIN_WEEKLY_HOURS + '時間未満のため、対象外です。');
       notes.push('判定は契約上の時間で行います。実際の労働時間が契約を超える状態が続くと、対象になることがあります。');
       return { status: 'not', title: '加入の対象外です', reasons: reasons, notes: notes, coveredFrom: null };
     }
-    reasons.push('週の所定労働時間が20時間以上です。');
+    reasons.push('週の所定労働時間が' + MIN_WEEKLY_HOURS + '時間以上です。');
 
     if (a.student === 'daytime') {
       reasons.push('昼間の学生は、短時間労働者としての加入の対象外です。');
@@ -257,7 +272,7 @@
     return Math.floor((Date.parse(today) - Date.parse(CHECKED)) / 86400000);
   }
 
-  var api = { judge: judge, estimatePremium: estimatePremium, gradeKenpo: gradeKenpo, gradePension: gradePension, deductYen: deductYen, GRADES_KENPO: GRADES_KENPO, PREMIUM_CHECKED: PREMIUM_CHECKED, PREMIUM_SOURCES: PREMIUM_SOURCES, sizeThresholdAt: sizeThresholdAt, sizeCoveredFrom: sizeCoveredFrom, sizeTimeline: sizeTimeline, formatYm: formatYm, daysSinceChecked: daysSinceChecked, RATES: RATES, CHECKED: CHECKED, SOURCES: SOURCES };
+  var api = { judge: judge, hoursLines: hoursLines, MIN_WEEKLY_HOURS: MIN_WEEKLY_HOURS, THREE_QUARTERS: THREE_QUARTERS, DEFAULT_FULLTIME: DEFAULT_FULLTIME, HOURS_STEP: HOURS_STEP, HOURS_BIG_STEP: HOURS_BIG_STEP, estimatePremium: estimatePremium, gradeKenpo: gradeKenpo, gradePension: gradePension, deductYen: deductYen, GRADES_KENPO: GRADES_KENPO, PREMIUM_CHECKED: PREMIUM_CHECKED, PREMIUM_SOURCES: PREMIUM_SOURCES, sizeThresholdAt: sizeThresholdAt, sizeCoveredFrom: sizeCoveredFrom, sizeTimeline: sizeTimeline, formatYm: formatYm, daysSinceChecked: daysSinceChecked, RATES: RATES, CHECKED: CHECKED, SOURCES: SOURCES };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ShahoJudge = api;
 })(this);
