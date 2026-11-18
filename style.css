@@ -152,6 +152,18 @@ p.guide-link { margin-top: var(--sp-3); }   /* 後ろの .small（sp-1）に負�
 .nenpyo .nenpyo-num, .nenpyo .nenpyo-ym { fill: var(--muted); font-size: 20px; }
 .nenpyo .nenpyo-dot { fill: var(--accent); stroke: var(--card); stroke-width: 3; }
 
+/* 1. の欄の下の、週の労働時間の線（Q-526）。境目の線は字と同じ色で、帯に色を付けない（判定は結果の所だけが言う）。画面だけで紙に出さない */
+.hours-line svg { width: 100%; height: auto; display: block; margin-top: var(--sp-2); }
+.hours-line svg.hl-empty { cursor: pointer; }
+.hours-line .hl-track { stroke: var(--muted); stroke-width: 4; stroke-linecap: round; }
+.hours-line .hl-edge { stroke: var(--muted); stroke-width: 2; }
+.hours-line .hl-num { fill: var(--muted); font-size: 20px; pointer-events: none; }
+.hours-line .hl-mark { display: block; cursor: grab; touch-action: none; outline: none; scroll-margin-top: 56px; }   /* 固定バー（44px）の下に送る */
+.hours-line .hl-hit { fill: transparent; }
+.hours-line .hl-dot { fill: var(--accent); stroke: var(--card); stroke-width: 3; }
+.hours-line .hl-mark:focus-visible .hl-dot { stroke: var(--focus-ring); stroke-width: 5; }
+.hours-line .hl-mark:focus-visible .hl-hit { stroke: var(--focus-ring); stroke-width: 3; fill: var(--focus); fill-opacity: 0.5; }
+
 /* 保険料の目安 */
 .premium { width: 100%; border-collapse: collapse; margin-top: var(--sp-1); }
 .premium th, .premium td { padding: var(--sp-1); border-bottom: 1px solid var(--border); text-align: left; }
@@ -213,6 +225,7 @@ details.card.opt[open] > summary { border-bottom: 1px solid var(--border); margi
 
 @media print {
   .fixed-bar { display: none !important; }
+  .hours-line { display: none !important; }
   /* 印刷では折りたたみの中も出す */
   main details::details-content { content-visibility: visible; display: block; }
   main details > summary::before { content: none; }

@@ -91,7 +91,119 @@
     box.appendChild(svg);
   }
 
+  // --- 1. の欄の下の、週の労働時間の線（Q-526）: 横は 0 から正社員の時間まで。境目は 20 時間と正社員の 4 分の 3（ShahoJudge.hoursLines）。
+  // 印を引く・← → で欄の値を書き換え、欄の input の道（update）で結果を出し直す。判定は結果の所だけが言う（帯に字も色も付けない）
+  var HL = { W: 520, L: 40, R: 40, Y20: 24, Y34: 52, TRACK: 88, YEND: 128, H: 140 };
+  var hl = (function () {
+    var box = document.getElementById('hours-line');
+    var J = window.ShahoJudge;
+    var field = form.weeklyHours;
+    var svg = document.createElementNS(SVGNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + HL.W + ' ' + HL.H);
+    function mk(parent, name, attrs) {
+      var e = document.createElementNS(SVGNS, name);
+      Object.keys(attrs).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+      parent.appendChild(e); return e;
+    }
+    mk(svg, 'line', { class: 'hl-track', x1: HL.L, y1: HL.TRACK, x2: HL.W - HL.R, y2: HL.TRACK });
+    var line20 = mk(svg, 'line', { class: 'hl-edge', y1: HL.Y20 + 8, y2: HL.TRACK + 14 });
+    var line34 = mk(svg, 'line', { class: 'hl-edge', y1: HL.Y34 + 8, y2: HL.TRACK + 14 });
+    var t20 = mk(svg, 'text', { class: 'hl-num', y: HL.Y20, 'text-anchor': 'middle' });
+    var t34 = mk(svg, 'text', { class: 'hl-num', y: HL.Y34, 'text-anchor': 'middle' });
+    var t0 = mk(svg, 'text', { class: 'hl-num', x: HL.L, y: HL.YEND, 'text-anchor': 'middle' });
+    var tMax = mk(svg, 'text', { class: 'hl-num', y: HL.YEND, 'text-anchor': 'middle' });
+    t0.textContent = '0';
+    var mark = mk(svg, 'g', { class: 'hl-mark', tabindex: '0', role: 'slider', 'aria-label': '契約上の週の労働時間', 'aria-valuemin': '0' });
+    var hit = mk(mark, 'rect', { class: 'hl-hit' });
+    var dot = mk(mark, 'circle', { class: 'hl-dot', r: 12, cy: HL.TRACK });
+    box.appendChild(svg);
+
+    var active = false, dragging = false, frozenMax = null;
+    function num(n) { return String(Number(n.toFixed(3))); }
+    function curMax() { return frozenMax != null ? frozenMax : J.hoursLines(form.fullTimeHours.value).max; }
+    function sx(h, max) { return HL.L + h / max * (HL.W - HL.L - HL.R); }
+    function hoursAt(clientX) {
+      var p = svg.createSVGPoint(); p.x = clientX; p.y = 0;
+      var x = p.matrixTransform(svg.getScreenCTM().inverse()).x;
+      var max = curMax(), step = J.HOURS_STEP;
+      var h = Math.round((x - HL.L) / (HL.W - HL.L - HL.R) * max / step) * step;
+      return Math.min(Math.floor(max / step) * step, Math.max(step, h));   // 0 は「入力してください」になるので、線の上の最小は 1 刻み
+    }
+    // 端に字が出ないように、字の中心を図の中に寄せる
+    function placeText(t, x) {
+      var w = 0;
+      try { w = t.getComputedTextLength(); } catch (e) { w = 0; }
+      var half = w / 2;
+      t.setAttribute('x', Math.min(HL.W - half, Math.max(half, x)).toFixed(1));
+    }
+    function setHours(h) {
+      if (field.value !== '' && Number(field.value) === h) return;
+      field.value = num(h);
+      field.dispatchEvent(new Event('input', { bubbles: true }));   // 欄に打ったときと同じ道（form の input → update）
+    }
+    function render() {
+      var lines = J.hoursLines(form.fullTimeHours.value);
+      var max = curMax();
+      tMax.textContent = num(max) + ' 時間';
+      var x20 = sx(lines.min, max), x34 = sx(lines.threeQuarter, max);
+      var show20 = lines.min <= max;
+      [line20, t20].forEach(function (e) { e.style.display = show20 ? '' : 'none'; });
+      line20.setAttribute('x1', x20.toFixed(1)); line20.setAttribute('x2', x20.toFixed(1));
+      line34.setAttribute('x1', x34.toFixed(1)); line34.setAttribute('x2', x34.toFixed(1));
+      t20.textContent = num(lines.min) + ' 時間';
+      t34.textContent = num(lines.threeQuarter) + ' 時間（4 分の 3）';
+      placeText(t20, x20); placeText(t34, x34); placeText(tMax, HL.W - HL.R);
+      var v = field.value === '' ? NaN : Number(field.value);
+      var has = v > 0;
+      mark.style.display = has ? '' : 'none';
+      svg.classList.toggle('hl-empty', !has);
+      if (!has) return;
+      var cx = sx(Math.min(v, max), max);   // 正社員の時間を超える値は右の端に
+      // 当たりは画面の上で 44px 以上（図の縮みに合わせて viewBox の単位を広げる）
+      var scale = svg.getBoundingClientRect().width / HL.W || 1;
+      var s = Math.max(48, 48 / scale);
+      hit.setAttribute('x', (cx - s / 2).toFixed(1)); hit.setAttribute('y', (HL.TRACK - s / 2).toFixed(1));
+      hit.setAttribute('width', s.toFixed(1)); hit.setAttribute('height', s.toFixed(1));
+      dot.setAttribute('cx', cx.toFixed(1));
+      mark.setAttribute('aria-valuemax', num(max));
+      mark.setAttribute('aria-valuenow', num(v));
+      mark.setAttribute('aria-valuetext', num(v) + ' 時間');
+    }
+    function start() { if (!active) { active = true; frozenMax = curMax(); } }
+    function stop() { if (active && !dragging && document.activeElement !== mark) { active = false; frozenMax = null; render(); } }
+
+    mark.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      start(); dragging = true;
+      try { mark.setPointerCapture(e.pointerId); } catch (err) { /* 取れなくても動く */ }
+      try { mark.focus({ preventScroll: true }); } catch (err) { mark.focus(); }
+    });
+    mark.addEventListener('pointermove', function (e) { if (dragging) setHours(hoursAt(e.clientX)); });
+    function release() { if (!dragging) return; dragging = false; stop(); }
+    mark.addEventListener('pointerup', release);
+    mark.addEventListener('pointercancel', release);
+    mark.addEventListener('focus', start);
+    mark.addEventListener('blur', function () { dragging = false; stop(); });
+    mark.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      e.preventDefault();
+      var max = curMax(), step = e.shiftKey ? J.HOURS_BIG_STEP : J.HOURS_STEP;
+      var cur = Math.min(Number(field.value), max);   // 欄が正社員の時間を超えていれば、正社員の時間から
+      var next = cur + (e.key === 'ArrowRight' ? step : -step);
+      next = Math.min(Math.floor(max / J.HOURS_STEP) * J.HOURS_STEP, Math.max(J.HOURS_STEP, next));
+      if (next !== cur) setHours(next);
+    });
+    // 欄が空のときは印を出さず、線の上を押した所の時間が入る
+    svg.addEventListener('click', function (e) {
+      if (field.value !== '') return;
+      setHours(hoursAt(e.clientX));
+    });
+    window.addEventListener('resize', render);
+    return { render: render };
+  })();
+
   function update() {
+    hl.render();
     var hours = form.weeklyHours.value;
     var employer = radio('employer');
     // 6（任意）の details の summary に今の状態
